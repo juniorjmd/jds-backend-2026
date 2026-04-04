@@ -38,4 +38,9 @@ return [
         $controller = new AuthController();
         return $controller->setpassword($req);
     },
+
+    'c332258e69e38f18450f9a48c65c89d9e436c561' => function (Request $req) {
+        $controller = new AuthController();
+        return $controller->logout($req);
+    },
 ];

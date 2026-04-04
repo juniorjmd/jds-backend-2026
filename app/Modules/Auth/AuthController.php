@@ -68,6 +68,15 @@ final class AuthController
         return $result['data'] ?? [];
     }
 
+    public function logout(Request $request): array
+    {
+        $result = $this->service->logout($request);
+
+        $this->failIfNeeded($result, 'Error cerrando sesión');
+
+        return $result['data'] ?? [];
+    }
+
     private function failIfNeeded(array $result, string $defaultMessage): void
     {
         if (($result['success'] ?? false) === false) {

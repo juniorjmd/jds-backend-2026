@@ -36,6 +36,7 @@ $actions_to_check = [
     '16770d92a6a82ee8464f678f5f223b4c8ad05b69fba03' => 'me',
     'RESETEAR_USUARIO_PASS' => 'resetpassword',
     'HIJODELAGRANCHINGADA' => 'setpassword',
+    'c332258e69e38f18450f9a48c65c89d9e436c561' => 'logout',
 ];
 
 foreach ($actions_to_check as $hash => $name) {
@@ -58,6 +59,16 @@ $pwd = $testRequest->input('password', $testRequest->input('_password', ''));
 echo "✓ Se puede crear un Request con parámetros legacy\n";
 echo "✓ Usuario extraído: " . $usr . "\n";
 echo "✓ Password extraído: " . (strlen($pwd) > 0 ? '***' : 'vacío') . "\n";
+
+echo "\n=== TEST 4: Request soporta _llaveSession para logout ===\n";
+
+$logoutRequest = new Request('POST', [], [
+    'action' => 'c332258e69e38f18450f9a48c65c89d9e436c561',
+    '_llaveSession' => 'logout-token-123'
+], [], ['REQUEST_METHOD' => 'POST']);
+
+echo "✓ Logout action detectado: " . $logoutRequest->action() . "\n";
+echo "✓ Logout token detectado: " . $logoutRequest->input('_llaveSession') . "\n";
 
 echo "\n=== RESULTADO: Configuración correcta ===\n";
 exit(0);

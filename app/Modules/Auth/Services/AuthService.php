@@ -250,6 +250,51 @@ final class AuthService
         ];
     }
 
+    public function logout(Request $request): array
+    {
+        $token = trim((string) $request->input('llaveSession', $request->input('_llaveSession', $request->input('key_registro', ''))));
+
+        if ($token === '') {
+            return [
+                'success' => false,
+                'code' => 'VALIDATION_ERROR',
+                'message' => 'Debe enviar una llave de session',
+                'status' => 422,
+            ];
+        }
+
+        $session = $this->repository->findSessionByToken($token);
+        if ($session === null) {
+            return [
+                'success' => false,
+                'code' => 'TOKEN_NOT_FOUND',
+                'message' => 'La llave de session no es valida',
+                'status' => 404,
+            ];
+        }
+
+        $updated = $this->repository->invalidateSessionByToken($token);
+        if ($updated === false) {
+            return [
+                'success' => false,
+                'code' => 'LOGOUT_FAILED',
+                'message' => 'No fue posible cerrar la sesión',
+                'status' => 500,
+            ];
+        }
+
+        return [
+            'success' => true,
+            'code' => 'LOGOUT_OK',
+            'message' => 'Sesión cerrada correctamente',
+            'status' => 200,
+            'data' => [
+                'key_registro' => $token,
+                'session_status' => 'I',
+            ],
+        ];
+    }
+
     private function buildSuccessLoginResponse(array $row): array
     {
         $this->repository->actualizarCuotasVencidas();

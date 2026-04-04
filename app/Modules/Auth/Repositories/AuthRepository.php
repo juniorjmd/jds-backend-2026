@@ -90,4 +90,14 @@ final class AuthRepository extends BaseRepository
             ]
         );
     }
+
+    public function invalidateSessionByToken(string $token): bool
+    {
+        return $this->execute(
+            "UPDATE `session` SET `estado` = (SELECT `idestado` FROM `estado_registro` WHERE `estado` = 'I' LIMIT 1) WHERE `key` = :token",
+            [
+                'token' => $token,
+            ]
+        );
+    }
 }

@@ -1,107 +1,27 @@
 # Feature-04: Admin Module Legacy Routing - IMPLEMENTATION
 
-## 🏗️ Arquitectura Implementada
+## Cambios realizados
 
-### Estructura de Archivos
-```
-app/Modules/Admin/
-├── AdminController.php          # Controlador principal
-├── Services/
-│   └── AdminService.php         # Lógica de negocio
-└── Repositories/                # (para futura implementación BD)
+- `config/admin-actions.php` ahora mapea las siete acciones legacy reales de `administrator/index.php`
+- `AdminController.php` agrega handlers para recursos, permisos de perfil y operaciones contables
+- `AdminService.php` centraliza autenticacion, arbol base de recursos y payloads estandar
+- se mantuvieron `OBTENER_USUARIOS`, `ACTUALIZAR_USUARIO` y `OBTENER_MENUS` como compatibilidad adicional
+- se agregaron pruebas nuevas en:
+  - `tests/Unit/AdminParametersTest.php`
+  - `tests/Unit/AdminServiceTest.php`
 
-config/
-└── admin-actions.php            # Mapeo de acciones legacy
-```
+## Decision de contrato
 
-### Componentes Principales
+El backend no replica el envelope legacy de `error`, `data` y `numdata` como raiz.
 
-#### AdminController
-- **Constructor**: Recibe Request y AdminService (sin Response directa)
-- **Métodos**: getUsers(), createUser(), updateUser(), getMenus()
-- **Respuestas**: Usa Response::ok() y Response::fail() para consistencia
+La raiz HTTP del modulo queda unificada en:
 
-#### AdminService
-- **Constructor**: Recibe Request y AuthContext
-- **Autenticación**: Usa AuthContext::resolve() para validar usuario
-- **Validaciones**: Verifica permisos administrativos
-- **Lógica**: Implementa operaciones simuladas (TODO: conectar a BD)
+- `ok`
+- `data`
+- `error`
 
-#### Configuración
-- **admin-actions.php**: Mapea acciones legacy a [AdminController::class, 'method']
-- **Routes.php**: Carga automáticamente admin-actions.php
-- **Router.php**: Factory method createAdminController()
+Los datos especificos del modulo viven dentro de `data`.
 
-## 🔄 Flujo de Ejecución
+## Nota importante
 
-### Ejemplo: Get Users
-1. **Frontend** envía: `POST /` con `{"action": "OBTENER_USUARIOS", "_estado": "A"}`
-2. **Router** detecta acción legacy, busca en admin-actions.php
-3. **Router** encuentra `[AdminController::class, 'getUsers']`
-4. **Router** instancia AdminController via createAdminController()
-5. **AdminController::getUsers()** ejecuta lógica
-6. **AdminService** valida autenticación y permisos
-7. **Respuesta** retorna JSON compatible con frontend
-
-## 🔧 Cambios Técnicos
-
-### Router.php
-```php
-// Agregado import
-use App\Modules\Admin\AdminController;
-
-// Agregado en instantiateAndCall()
-case AdminController::class => $this->createAdminController($request)
-
-// Nuevo método factory
-private function createAdminController(Request $request): AdminController
-{
-    $authContext = new AuthContext();
-    $service = new AdminService($request, $authContext);
-    return new AdminController($request, $service);
-}
-```
-
-### Routes.php
-```php
-// Ya incluye carga automática de admin-actions.php
-$adminActions = (static function() {
-    return require __DIR__ . '/../../config/admin-actions.php';
-})();
-```
-
-### Response API
-- **Antes**: `$this->response->json([...])->send()`
-- **Después**: `Response::ok([...])` o `Response::fail('ERROR', 'message')`
-
-## 🧪 Tests Implementados
-
-### Unit Tests
-- **AdminParametersTest**: Valida parsing de parámetros legacy
-- **AdminServiceTest**: Pruebas de lógica de negocio
-- **AdminControllerTest**: Pruebas de respuestas HTTP
-
-### Cobertura
-- ✅ Autenticación requerida
-- ✅ Validación de permisos
-- ✅ Manejo de errores
-- ✅ Formato de respuesta JSON
-
-## 🔄 Compatibilidad
-
-### Frontend Legacy
-- ✅ Mantiene formato de respuesta esperado
-- ✅ Parámetros con prefijo `_`
-- ✅ Estructura JSON compatible
-
-### Backend Moderno
-- ✅ Arquitectura modular
-- ✅ Inyección de dependencias
-- ✅ Patrón Service Layer
-- ✅ API Response consistente
-
-## 🚀 Próximos Pasos
-- Conectar a base de datos real
-- Implementar AdminRepository
-- Agregar más acciones legacy según necesidad
-- Implementar auditoría de cambios
+La logica del servicio sigue siendo transitoria y simulada en varias acciones administrativas. Este cierre cubre routing legacy, validacion de payload y contrato de salida, pero no reemplaza aun procedimientos reales de base de datos o correo del legacy.

@@ -7,13 +7,16 @@
 - Suite actual: `19/19` pasando con `php tests/run-tests.php`
 - No subir: `.env`
 
-## Ya alineado con el frontend
+## Nota de revalidacion
 
-- `personas`
-- `ventas`
-- `datosiniciales`
-- `vehiculos`
-- `inventario` (slice de productos y precargue usado por el front)
+La revision transversal de cobertura legacy mostro que no basta con que un modulo exista o tenga algunos endpoints migrados.
+
+Conclusiones:
+
+- `personas` y `vehiculos` se ven completos por las acciones visibles en sus entrypoints legacy
+- `auth` y `admin` ya quedaron cerrados contra la cobertura legacy visible revisada
+- `carwash`, `ventas`, `datosiniciales`, `inventario` y `documentos` siguen parciales
+- por tanto no se debe asumir que un modulo "ya esta alineado" solo porque tenga consumers frontend adaptados
 
 ## Criterio actualizado de migracion
 
@@ -51,7 +54,6 @@ Antes de abrir mas cobertura en modulos nuevos, cerrar los modulos ya existentes
 - `datosiniciales`
 - `vehiculos`
 - `inventario`
-- `admin`
 - `documentos`
 
 Objetivo por modulo:
@@ -66,6 +68,7 @@ Objetivo por modulo:
 Validar por accion:
 
 - parametros legacy aceptados por `Request`
+- existencia real contra el entrypoint legacy del modulo
 - nombre y forma de campos de respuesta estandar
 - diferencias contra legacy real aunque el front no las use hoy
 - tests de parametros y tests de servicio por modulo
@@ -118,24 +121,24 @@ Despues de `documentos`, completar los modulos actuales que ya existen en backen
 Focos visibles en esta revision:
 
 - `carwash` ya tiene contrato estandar alineado con frontend pero sigue con logica simulada
+- `ventas` sigue parcial frente al legacy visible en `ventas/index.php`
+- `datosiniciales` sigue parcial frente al legacy visible en `datosiniciales/index.php`
+- `inventario` sigue parcial y ademas con contrato backend aun no estandarizado
 - `documentos` todavia no tiene mapa legacy real en `config/documentos-actions.php`
-- `admin` tiene cobertura parcial frente al legacy
 - hay acciones genericas de base de datos y acciones Odoo/reportes sin mapear en backend nuevo
 - hay que separar claramente endpoints usados por el front de endpoints heredados sin consumo actual confirmado
 - algunos modulos legacy todavia no tienen reflejo directo por nombre en el backend nuevo y habra que decidir su destino despues de cerrar los modulos actuales
 
 ## Secuencia recomendada para la siguiente pasada
 
-1. Auditar contratos de entrada/salida de modulos ya migrados
-2. Auditar consumo frontend de esos modulos y registrar archivos afectados
-3. Cerrar `carwash` con logica real de caja sobre BD/procedimientos
-4. Completar mapa legacy de `documentos`
-5. Implementar cobertura total legacy de `documentos` con respuesta estandar
-6. Preparar cambio equivalente en frontend para `documentos`
-7. Completar cobertura faltante de `admin`
-8. Completar cobertura faltante de `inventario`, `ventas`, `personas`, `vehiculos` y `datosiniciales`
-9. Solo despues de cerrar modulos actuales, revisar acciones genericas y modulos legacy sin reflejo directo
-10. Ejecutar:
+1. Revalidar cobertura legacy real de cada modulo ya revisado
+2. Completar faltantes de `datosiniciales`
+3. Completar faltantes de `inventario`
+4. Estandarizar respuestas backend del modulo que se cierre
+5. Adaptar frontend del modulo cerrado
+6. Despues entrar a `documentos`
+7. Solo despues de cerrar modulos actuales, revisar acciones genericas y modulos legacy sin reflejo directo
+8. Ejecutar:
    - `php tests/Unit/DocumentosServiceTest.php`
    - `php tests/Unit/DocumentosParametersTest.php`
    - `php tests/run-tests.php`

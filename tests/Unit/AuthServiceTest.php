@@ -131,9 +131,32 @@ echo "  _llaveSession: " . $llave . "\n";
 $test5_pass = ($llave === 'abc123def456');
 echo "\n" . ($test5_pass ? "✓" : "✗") . " TEST 5: " . ($test5_pass ? "PASÓ" : "FALLÓ") . "\n\n";
 
+// TEST 6: Request con _llaveSession para logout
+echo "TEST 6: Request soporta _llaveSession para logout\n";
+echo "-" . str_repeat("-", 70) . "\n" ;
+
+$request6 = new Request(
+    'POST',
+    [],
+    [
+        'action' => 'c332258e69e38f18450f9a48c65c89d9e436c561',
+        '_llaveSession' => 'logout-token-123'
+    ],
+    [],
+    ['REQUEST_METHOD' => 'POST']
+);
+
+$logoutToken = $request6->input('_llaveSession');
+echo "Entrada:\n";
+echo "  action: " . $request6->action() . "\n";
+echo "  _llaveSession: " . $logoutToken . "\n";
+
+$test6_pass = ($logoutToken === 'logout-token-123');
+echo "\n" . ($test6_pass ? "✓" : "✗") . " TEST 6: " . ($test6_pass ? "PASÓ" : "FALLÓ") . "\n\n";
+
 // RESUMEN
 echo "=== RESUMEN ===\n";
-$tests = [$test1_pass, $test2_pass, $test3_pass, $test4_pass, $test5_pass];
+$tests = [$test1_pass, $test2_pass, $test3_pass, $test4_pass, $test5_pass, $test6_pass];
 $passed = count(array_filter($tests));
 $total = count($tests);
 

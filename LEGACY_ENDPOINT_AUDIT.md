@@ -66,14 +66,18 @@ Eso incluye acciones de:
   - `src/app/modules/pos/modals/definir-base-caja/definir-base-caja.component.ts`
 - nota detallada:
   - `pr-features/02-carwash-legacy-routing/04-BACK-FRONT-ALIGNMENT.md`
+- validacion de cobertura legacy:
+  - parcial
+  - las 4 acciones de caja visibles estan mapeadas
+  - pero en legacy esas acciones tambien viven mezcladas con `ventas`
+  - sigue pendiente confirmar ownership final y reemplazo real de procedimientos
 
 #### Auth
 
 - estado: migrado y mapeado en `config/actions.php`
 - pendiente:
+  - completar cobertura del legacy
   - validar completamente entradas y respuestas
-  - definir contrato estandar final del modulo
-  - adaptar frontend de login a ese contrato
 - archivos frontend detectados:
   - `src/app/services/login.services.ts`
   - `src/app/modules/login/pages/login/login.component.ts`
@@ -82,12 +86,26 @@ Eso incluye acciones de:
   - `src/app/components/mi-usuario/mi-usuario.component.ts`
 - nota detallada:
   - `pr-features/01-auth-legacy-routing/04-BACK-FRONT-ALIGNMENT.md`
+- validacion de cobertura legacy:
+  - completo
+  - cubiertos:
+    - `ef2e1d89937fba9f888516293ab1e19e7ed789a5`
+    - `16770d92a6a82ee846f7ff23b4c8ad05b69fba03`
+    - `16770d92a6a82ee8464f678f5f223b4c8ad05b69fba03`
+    - `RESETEAR_USUARIO_PASS`
+    - `HIJODELAGRANCHINGADA`
+    - `c332258e69e38f18450f9a48c65c89d9e436c561` cierre de sesion
+  - nota frontend:
+    - no se encontro consumo directo actual del logout legacy en el repo frontend durante esta revision
 
 #### Personas
 
 - estado: con acciones legacy registradas
 - acciones visibles: `BUSCAR_ODOO_TITULO_PERSONA`, `GET_MAESTROS_CLIENTES`
-- pendiente: validacion de contrato legacy
+- validacion de cobertura legacy:
+  - completo por acciones visibles del modulo `personas/index.php`
+- pendiente:
+  - alinear respuesta estandar en backend
 
 #### Ventas
 
@@ -98,20 +116,49 @@ Eso incluye acciones de:
   - `ASIGNAR_PAGOS_DOCUMENTOS_CREDITO`
   - `ASIGNAR_ABONO_DOCUMENTOS_CREDITO`
 - pendiente:
-  - validar respuestas legacy
-  - revisar cobertura frente a acciones adicionales del legacy
+  - alinear respuesta estandar en backend
+  - revisar ownership de acciones adicionales legacy que hoy viven en `ventas/index.php`
+- validacion de cobertura legacy:
+  - parcial
+  - faltantes visibles en `ventas/index.php`:
+    - `ASIGNAR_PAGOS_DOCUMENTOS`
+    - `insertar_producto_venta`
+    - `BUSCAR_PRODUCTO_ODOO`
+    - `INSERT_PERFIL_USUARIO`
+    - `mnbvcxzxcxcxasdfewq15616`
+    - `qwer12356yhn7ujm8ik`
+    - `52444d9072f7ec12a26cb2879ebb4ab0bf5aa553`
+    - `52444d9072f7ec12aJEE8FFJJKVNASDHQWFLKA`
+    - `e06c06e7e4ef58bdb0kieujfñ541b3017fdd35473`
+  - nota:
+    - algunas acciones de caja e inventario tambien aparecen dentro de `ventas/index.php`, por eso no basta revisar solo la carpeta del modulo por nombre
 
 #### DatosIniciales
 
 - estado: con accion legacy registrada
 - accion visible: `GET_SUCURSAL_PRINCIPAL_DATA`
-- pendiente: validacion de contrato legacy
+- validacion de cobertura legacy:
+  - parcial
+  - cubierto:
+    - `GET_SUCURSAL_PRINCIPAL_DATA`
+  - faltantes visibles en `datosiniciales/index.php`:
+    - `52444d9072f7ec12a26cb2879ebb4ab0bf5aa553`
+    - `52444d9072f7ec12aJEE8FFJJKVNASDHQWFLKA`
+    - `23929870008e23007350be74a708ab3a806dce13`
+    - `8e9ae038c37d3b59fc1eed456c77aefb5eadffea`
+    - `99c505a66a9d8a984059baf1b99bb9e6456ae4bb`
+- pendiente:
+  - alinear respuesta estandar en backend
+  - decidir si esas acciones realmente pertenecen a `datosiniciales` o a otro dominio funcional actual
 
 #### Vehiculos
 
 - estado: con accion legacy registrada
 - accion visible: `CREAR_DOCUMENTO_POR_SERVICIO_VEHICULO`
-- pendiente: validacion de contrato legacy
+- validacion de cobertura legacy:
+  - completo por acciones visibles del modulo `vehiculos/index.php`
+- pendiente:
+  - alinear respuesta estandar en backend
 
 #### Inventario
 
@@ -123,20 +170,44 @@ Eso incluye acciones de:
   - crear/actualizar producto
   - busquedas de producto
 - pendiente:
-  - validar contrato legacy
-  - revisar acciones legacy no mapeadas del modulo como categorias, bodegas, marcas y otros filtros
+  - completar endpoints faltantes del legacy
+  - alinear respuesta estandar en backend
+  - adaptar frontend del modulo
+- validacion de cobertura legacy:
+  - parcial
+  - faltantes visibles en `inventario/index.php`:
+    - `TRASLADO_ENTRE_BODEGAS`
+    - `GET_CATEGORIAS`
+    - `GET_BODEGAS`
+    - `BUSCAR_TODOS_LOS_PRODUCTOS_POR_CATEGORIA`
+    - `BUSCAR_TODOS_LOS_PRODUCTOS_POR_MARCA`
+    - `BUSCAR_TODOS_LOS_PRODUCTOS_OLD`
 
 #### Admin
 
-- estado: cobertura parcial
+- estado: migrado y alineado con frontend
 - acciones visibles:
-  - `OBTENER_USUARIOS`
+  - `GET_ALL_RECURSOS`
+  - `SET_PERFIL_RECURSO`
+  - `GET_ALL_RECURSOS_BY_PERFIL`
   - `CREAR_USUARIO`
-  - `ACTUALIZAR_USUARIO`
-  - `OBTENER_MENUS`
-- pendiente:
-  - comparar contra acciones legacy reales del modulo
-  - validar entradas y respuestas
+  - `CREAR_OPERACION_MANUAL`
+  - `CREAR_OPERACIONES_PREESTABLECIDAS`
+  - `EJECUTAR_OPERACIONES_PREESTABLECIDAS`
+- archivos frontend detectados:
+  - `src/app/services/usuario.services.ts`
+  - `src/app/services/cntContables.service.ts`
+  - `src/app/modules/admin/modules/permisos/pages/perfil/perfil.component.ts`
+  - `src/app/modules/shared/components/menu-item-li-check/menu-item-li-check.component.ts`
+  - `src/app/modules/admin/modules/permisos/pages/usuario/nuevo/usuario-nuevo.component.ts`
+  - `src/app/modules/admin/modules/cuentas-contables/pages/operaciones/pages/crtOperaciones.component.ts`
+  - `src/app/modules/admin/modules/traslados-cnt/modals/*`
+- nota detallada:
+  - `pr-features/04-admin-legacy-routing/04-BACK-FRONT-ALIGNMENT.md`
+- validacion de cobertura legacy:
+  - completo para las acciones visibles en `administrator/index.php`
+  - nota:
+    - `OBTENER_USUARIOS`, `ACTUALIZAR_USUARIO` y `OBTENER_MENUS` siguen existiendo como compatibilidad adicional del backend nuevo, pero no forman parte del set principal del legacy revisado
 
 #### Documentos
 
@@ -161,6 +232,9 @@ Eso incluye acciones de:
   - `GENERAR_DOCUMENTOS_DEVOLUCION`
   - `GENERAR_DOCUMENTOS_NOTA_DEBITO`
 - prioridad: alta
+- validacion de cobertura legacy:
+  - claramente parcial
+  - el mapa actual `config/documentos-actions.php` no corresponde al set principal de acciones legacy usado por frontend
 
 ## Clasificacion operativa sugerida
 
@@ -206,10 +280,9 @@ Despues de eso evaluar:
 
 ## Siguiente corte recomendado
 
-1. Validar contrato de los modulos ya migrados.
-2. Registrar sus consumidores frontend.
-3. Migrar `documentos` en modo legacy real y con cobertura completa del modulo.
-4. Adaptar frontend de `documentos` a la respuesta estandar.
-5. Completar cobertura restante por `admin`.
-6. Repetir el mismo esquema por los demas modulos actuales hasta cierre completo.
-7. Mantener actualizado este archivo por accion o por modulo en cada PR.
+1. Revalidar cobertura legacy real de todos los modulos ya revisados.
+2. Corregir el estado de cada modulo a `completo` o `parcial`.
+3. Completar primero faltantes de `datosiniciales` e `inventario`.
+4. Despues entrar a `documentos` con mapa legacy real completo.
+5. Adaptar frontend solo despues de cerrar el contrato backend del modulo correspondiente.
+6. Mantener actualizado este archivo por accion o por modulo en cada PR.
