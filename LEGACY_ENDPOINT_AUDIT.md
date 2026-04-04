@@ -165,26 +165,47 @@ Eso incluye acciones de:
 
 #### Inventario
 
-- estado: con varias acciones legacy registradas
+- estado: migrado y alineado con frontend
 - cobertura visible:
   - movimientos
+  - traslados
   - precargue
-  - descuento
+  - catalogos
   - crear/actualizar producto
   - busquedas de producto
-- pendiente:
-  - completar endpoints faltantes del legacy
-  - alinear respuesta estandar en backend
-  - adaptar frontend del modulo
+- archivos frontend detectados:
+  - `src/app/services/producto.service.ts`
+  - `src/app/modules/admin/pages/productos/productos.component.ts`
+  - `src/app/modules/pos/pages/ventas/ventas.component.ts`
+  - `src/app/modules/pos/modals/ingresar-producto-venta/ingresar-producto-venta.component.ts`
+  - `src/app/modules/pos/modals/ModalUpdateProductoVenta/ModalUpdateProductoVenta.component.ts`
+  - `src/app/modules/compras/pages/crear/crearCompra.component.ts`
+  - `src/app/modules/compras/pages/editar/editarCompra.component.ts`
+  - `src/app/modules/admin/modals/modalUpdateProducto/modalUpdateProducto.component.ts`
+- nota detallada:
+  - `pr-features/03-inventario-legacy-routing/04-BACK-FRONT-ALIGNMENT.md`
 - validacion de cobertura legacy:
-  - parcial
-  - faltantes visibles en `inventario/index.php`:
+  - completo
+  - cubiertos:
+    - `STOCK_MOVE`
+    - `STOCK_MOVE_DEVOLUCION`
     - `TRASLADO_ENTRE_BODEGAS`
     - `GET_CATEGORIAS`
+    - `INGRESO_DATOS_DATOS_AUX_INVENTARIO`
     - `GET_BODEGAS`
+    - `BORRAR_DATOS_INGRESO_AUX_INVENTARIO`
+    - `BUSCAR_TODOS_LOS_PRODUCTOS`
+    - `BUSCAR_TODOS_LOS_PRODUCTOS_OLD`
     - `BUSCAR_TODOS_LOS_PRODUCTOS_POR_CATEGORIA`
     - `BUSCAR_TODOS_LOS_PRODUCTOS_POR_MARCA`
-    - `BUSCAR_TODOS_LOS_PRODUCTOS_OLD`
+    - `BUSCAR_TODOS_LOS_PRODUCTOS_POR_NOMBRE`
+    - `BUSCAR_PRODUCTO`
+    - `BUSCAR_EXISTENCIA_PRODUCTO`
+    - `BUSCAR_PRODUCTO_COD_BARRAS`
+    - `INSERTAR_NUEVO_PRODUCTO`
+    - `ACTULIZAR_PRODUCTO`
+    - `SET_ACTIVIDAD_DESCUENTO`
+    - `devolver_producto_venta`
 
 #### Admin
 

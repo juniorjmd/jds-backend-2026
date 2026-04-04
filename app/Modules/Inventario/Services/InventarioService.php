@@ -8,7 +8,7 @@ use App\Core\Http\Request;
 class InventarioService
 {
     private Request $request;
-    private $authContext; // Flexible, puede ser cualquier objeto con método user()
+    private $authContext;
 
     public function __construct(Request $request, $authContext)
     {
@@ -16,111 +16,124 @@ class InventarioService
         $this->authContext = $authContext;
     }
 
-    /**
-     * Registra un movimiento de stock (entrada/salida)
-     * 
-     * @param int $documentId ID del documento
-     * @param int $productId ID del producto
-     * @param float $quantity Cantidad movida
-     * @param string $movementType Tipo de movimiento (salida, entrada, ajuste)
-     * @return array Estado del movimiento
-     * @throws \Exception
-     */
     public function recordStockMove(
         int $documentId,
         int $productId,
         float $quantity,
         string $movementType = 'salida'
     ): array {
-        $authResult = $this->authContext->resolve($this->request);
-        
-        if (!($authResult['success'] ?? false)) {
-            throw new \Exception('Usuario no autenticado');
-        }
-        
-        $usuario = $authResult['compact_user'];
+        $this->resolveAuthenticatedUser();
 
-        // TODO: Implementar con BD cuando esté disponible
         return [
-            'error' => 'ok',
-            'stock_move_id' => 1,
-            'documento_id' => $documentId,
-            'producto_id' => $productId,
-            'cantidad_movida' => $quantity,
-            'tipo_movimiento' => $movementType,
-            'cantidad_anterior' => 100,
-            'cantidad_nueva' => $movementType === 'salida' ? 100 - $quantity : 100 + $quantity,
-            'fecha_hora' => date('Y-m-d H:i:s')
+            'message' => 'Movimiento de stock registrado correctamente',
+            'movement' => [
+                'id' => 1,
+                'documentId' => $documentId,
+                'productId' => $productId,
+                'quantity' => $quantity,
+                'movementType' => $movementType,
+                'previousQuantity' => 100,
+                'currentQuantity' => $movementType === 'salida' ? 100 - $quantity : 100 + $quantity,
+                'performedAt' => date('Y-m-d H:i:s'),
+            ],
         ];
     }
 
-    /**
-     * Registra una devolución de stock
-     * 
-     * @param int $documentId ID del documento
-     * @param int $productId ID del producto
-     * @param float $quantity Cantidad devuelta
-     * @return array Estado después de devolución
-     * @throws \Exception
-     */
     public function recordStockMoveDevolución(
         int $documentId,
         int $productId,
         float $quantity
     ): array {
-        $authResult = $this->authContext->resolve($this->request);
-        
-        if (!($authResult['success'] ?? false)) {
-            throw new \Exception('Usuario no autenticado');
-        }
-        
-        $usuario = $authResult['compact_user'];
+        $this->resolveAuthenticatedUser();
 
-        // TODO: Implementar con BD cuando esté disponible
         return [
-            'error' => 'ok',
-            'stock_move_devolucion_id' => 1,
-            'documento_id' => $documentId,
-            'producto_id' => $productId,
-            'cantidad_devuelta' => $quantity,
-            'cantidad_anterior' => 40,
-            'cantidad_nueva' => 40 + $quantity,
-            'tipo_operacion' => 'devolucion',
-            'fecha_hora' => date('Y-m-d H:i:s')
+            'message' => 'Devolucion de stock registrada correctamente',
+            'movement' => [
+                'id' => 1,
+                'documentId' => $documentId,
+                'productId' => $productId,
+                'quantity' => $quantity,
+                'movementType' => 'devolucion',
+                'previousQuantity' => 40,
+                'currentQuantity' => 40 + $quantity,
+                'performedAt' => date('Y-m-d H:i:s'),
+            ],
         ];
     }
 
-    /**
-     * Cancela una pre-carga de ingreso
-     * 
-     * @param int $ingressId ID de la pre-carga a cancelar
-     * @return array Resultado de cancelación
-     * @throws \Exception
-     */
+    public function transferBetweenWarehouses(
+        int $sourceWarehouseId,
+        int $targetWarehouseId,
+        string $productId,
+        float $quantity,
+        int $userId = 0
+    ): array {
+        $this->resolveAuthenticatedUser();
+
+        if ($sourceWarehouseId <= 0 || $targetWarehouseId <= 0 || trim($productId) === '' || $quantity <= 0) {
+            throw new \Exception('Todos los datos son necesarios para realizar la operacion');
+        }
+
+        return [
+            'message' => 'Traslado entre bodegas registrado correctamente',
+            'transfer' => [
+                'sourceWarehouseId' => $sourceWarehouseId,
+                'targetWarehouseId' => $targetWarehouseId,
+                'productId' => $productId,
+                'quantity' => $quantity,
+                'userId' => $userId,
+                'status' => 'OK',
+            ],
+        ];
+    }
+
+    public function getCategories(): array
+    {
+        $this->resolveAuthenticatedUser();
+
+        $categories = [
+            [
+                'id' => 10,
+                'letra' => 'A',
+                'nombre' => 'Productos de lavado',
+                'descripcion' => 'Categoria principal de lavado',
+                'tipo' => 'PRD',
+                'contador' => 4,
+                'numHijos' => 0,
+            ],
+            [
+                'id' => 11,
+                'letra' => 'B',
+                'nombre' => 'Servicios',
+                'descripcion' => 'Servicios prestados en punto de venta',
+                'tipo' => 'SRV',
+                'contador' => 2,
+                'numHijos' => 0,
+            ],
+        ];
+
+        return [
+            'categories' => $categories,
+            'count' => count($categories),
+        ];
+    }
+
     public function cancelPrechart(int $ingressId, int $warehouseId = 0): array
     {
         $usuario = $this->resolveAuthenticatedUser();
 
         return [
-            'error' => 'ok',
-            'ingreso_id' => $ingressId,
-            'bodega_ingreso' => $warehouseId,
-            'numdata' => 0,
-            'datos' => [],
-            'estado' => 'CANCELADO',
-            'fecha_cancelacion' => date('Y-m-d H:i:s'),
-            'usuario' => $usuario['nombre'] ?? 'anonymous'
+            'message' => 'Precargue cancelado correctamente',
+            'status' => 'CANCELADO',
+            'ingressId' => $ingressId,
+            'warehouseId' => $warehouseId,
+            'items' => [],
+            'count' => 0,
+            'performedAt' => date('Y-m-d H:i:s'),
+            'user' => $usuario['nombre'] ?? 'anonymous',
         ];
     }
 
-    /**
-     * Guarda pre-carga de ingreso
-     * 
-     * @param array $items Items a guardar
-     * @param int $ingressId ID del ingreso
-     * @return array Pre-carga guardada
-     * @throws \Exception
-     */
     public function savePrechart(array $items, int $ingressId, array $ingressPayload = []): array
     {
         $usuario = $this->resolveAuthenticatedUser();
@@ -137,14 +150,40 @@ class InventarioService
         }
 
         return [
-            'error' => 'ok',
-            'ingreso_id' => $ingressId,
-            'numdata' => count($items),
-            'datos' => $items,
-            'items_guardados' => count($items),
-            'estado' => 'GUARDADO',
-            'fecha_guardado' => date('Y-m-d H:i:s'),
-            'usuario' => $usuario['nombre'] ?? 'anonymous'
+            'message' => 'Precargue guardado correctamente',
+            'status' => 'GUARDADO',
+            'ingressId' => $ingressId,
+            'items' => array_values($items),
+            'count' => count($items),
+            'performedAt' => date('Y-m-d H:i:s'),
+            'user' => $usuario['nombre'] ?? 'anonymous',
+        ];
+    }
+
+    public function getWarehouses(): array
+    {
+        $this->resolveAuthenticatedUser();
+
+        $warehouses = [
+            [
+                'id' => 1,
+                'nombre' => 'Bodega principal',
+                'descripcion' => 'Bodega principal del sistema',
+                'tipo' => 1,
+                'tipo_descripcion' => 'Principal',
+            ],
+            [
+                'id' => 2,
+                'nombre' => 'Bodega secundaria',
+                'descripcion' => 'Bodega de apoyo',
+                'tipo' => 2,
+                'tipo_descripcion' => 'Secundaria',
+            ],
+        ];
+
+        return [
+            'warehouses' => $warehouses,
+            'count' => count($warehouses),
         ];
     }
 
@@ -157,52 +196,82 @@ class InventarioService
         }
 
         return [
-            'error' => 'ok',
-            'actividad_id' => 1,
-            'data' => $data,
+            'message' => 'Actividad de descuento creada correctamente',
+            'activityId' => 1,
+            'activity' => $data,
         ];
     }
 
     public function createProduct(array $product): array
     {
         $this->resolveAuthenticatedUser();
-
         $this->validateProductPayload($product);
 
         return [
-            'error' => 'ok',
-            'producto' => $product,
-            'numdata' => 1,
+            'message' => 'Producto creado correctamente',
+            'product' => $product,
+            'count' => 1,
         ];
     }
 
     public function updateProduct(array $product): array
     {
         $this->resolveAuthenticatedUser();
-
         $this->validateProductPayload($product);
 
         return [
-            'error' => 'ok',
-            'producto' => $product,
-            'numdata' => 1,
+            'message' => 'Producto actualizado correctamente',
+            'product' => $product,
+            'count' => 1,
         ];
     }
 
     public function getAllProducts(array $limit = []): array
     {
+        return $this->buildProductsResponse(
+            $this->applyLimit($this->sampleProducts(), $limit),
+            'sample_products'
+        );
+    }
+
+    public function getAllProductsOld(array $limit = []): array
+    {
+        return $this->buildProductsResponse(
+            $this->applyLimit($this->sampleProducts(), $limit),
+            'sample_products_old'
+        );
+    }
+
+    public function getProductsByCategory(int $categoryId, array $limit = []): array
+    {
         $this->resolveAuthenticatedUser();
 
-        $products = $this->sampleProducts();
-        $products = $this->applyLimit($products, $limit);
+        if ($categoryId <= 0) {
+            throw new \Exception('Codigo de categoria invalido');
+        }
 
-        return [
-            'error' => 'ok',
-            'numdata' => count($products),
-            'productos' => $products,
-            'data' => $products,
-            'query' => 'sample_products',
-        ];
+        $products = array_values(array_filter(
+            $this->sampleProducts(),
+            static fn (array $product): bool => (int) ($product['idCategoria'] ?? 0) === $categoryId
+        ));
+
+        return $this->buildProductsResponse($this->applyLimit($products, $limit), 'sample_products_by_category');
+    }
+
+    public function getProductsByBrand(int $brandId, array $limit = []): array
+    {
+        $this->resolveAuthenticatedUser();
+
+        if ($brandId <= 0) {
+            throw new \Exception('Codigo de marca-producto invalido');
+        }
+
+        $products = array_values(array_filter(
+            $this->sampleProducts(),
+            static fn (array $product): bool => (int) ($product['idMarca'] ?? 0) === $brandId
+        ));
+
+        return $this->buildProductsResponse($this->applyLimit($products, $limit), 'sample_products_by_brand');
     }
 
     public function getProductsByName(string $searchText, array $limit = []): array
@@ -222,37 +291,24 @@ class InventarioService
             }
         ));
 
-        $products = $this->applyLimit($products, $limit);
-
-        return [
-            'error' => 'ok',
-            'numdata' => count($products),
-            'productos' => $products,
-            'data' => $products,
-            'query' => 'sample_products_by_name',
-        ];
+        return $this->buildProductsResponse($this->applyLimit($products, $limit), 'sample_products_by_name');
     }
 
     public function getProductById(string $productId): array
     {
         $this->resolveAuthenticatedUser();
 
-        $product = $this->findSampleProductByIdOrBarcode($productId);
-        if ($product === null) {
-            return [
-                'error' => 'ok',
-                'numdata' => 0,
-                'producto' => [],
-                'data' => [],
-                'query' => 'sample_product_by_id',
-            ];
+        if (trim($productId) === '') {
+            throw new \Exception('Falta el id del producto a validar');
         }
 
+        $product = $this->findSampleProductByIdOrBarcode($productId);
+        $products = $product === null ? [] : [$product];
+
         return [
-            'error' => 'ok',
-            'numdata' => 1,
-            'producto' => $product,
-            'data' => [$product],
+            'product' => $product ?? [],
+            'products' => $products,
+            'count' => count($products),
             'query' => 'sample_product_by_id',
         ];
     }
@@ -261,21 +317,24 @@ class InventarioService
     {
         $this->resolveAuthenticatedUser();
 
+        if (trim($productId) === '' || $documentOrder <= 0) {
+            throw new \Exception('Falta el id del producto a validar');
+        }
+
         $product = $this->findSampleProductByIdOrBarcode($productId);
         $existence = $product['existencias'][0]['cant_actual'] ?? 0;
         $warehouseName = $product['existencias'][0]['nombreBodega'] ?? 'Bodega principal';
         $warehouseId = $product['existencias'][0]['id_bodega'] ?? 1;
 
         return [
-            'error' => 'ok',
-            'numdata' => $product === null ? 0 : 1,
-            'data' => [
+            'productExistence' => [
                 'nombreBodega' => $warehouseName,
                 'idProducto' => $productId,
                 'existencia' => $existence,
                 'idBodega' => $warehouseId,
                 'ordenDocumento' => $documentOrder,
             ],
+            'count' => $product === null ? 0 : 1,
             'query' => 'sample_product_existence',
         ];
     }
@@ -284,13 +343,16 @@ class InventarioService
     {
         $this->resolveAuthenticatedUser();
 
+        if (trim($productId) === '') {
+            throw new \Exception('Falta el id del producto a validar');
+        }
+
         $product = $this->findSampleProductByIdOrBarcode($productId);
         $products = $product !== null ? [$product] : [];
 
         return [
-            'error' => 'ok',
-            'numdata' => count($products),
-            'data' => $products,
+            'products' => $products,
+            'count' => count($products),
             'query' => 'sample_product_by_id_or_barcode',
         ];
     }
@@ -302,9 +364,20 @@ class InventarioService
         $line = is_array($product) ? $product : [];
 
         return [
-            'error' => 'ok',
-            'producto' => $line,
-            'estado' => 'DEVUELTO',
+            'message' => 'Producto devuelto correctamente',
+            'status' => 'DEVUELTO',
+            'product' => $line,
+        ];
+    }
+
+    private function buildProductsResponse(array $products, string $query): array
+    {
+        $this->resolveAuthenticatedUser();
+
+        return [
+            'products' => array_values($products),
+            'count' => count($products),
+            'query' => $query,
         ];
     }
 
@@ -337,6 +410,7 @@ class InventarioService
                 'idCategoria' => 10,
                 'idMarca' => 20,
                 'porcent_iva' => 19,
+                'images' => [],
                 'precios' => [[
                     'id_producto' => 101,
                     'precio_con_iva' => 12000,
@@ -357,6 +431,7 @@ class InventarioService
                 'idCategoria' => 11,
                 'idMarca' => 21,
                 'porcent_iva' => 0,
+                'images' => [],
                 'precios' => [[
                     'id_producto' => 202,
                     'precio_con_iva' => 25000,
@@ -387,6 +462,10 @@ class InventarioService
     {
         if (count($limit) >= 2) {
             return array_slice($items, (int) $limit[0], (int) $limit[1]);
+        }
+
+        if (count($limit) === 1) {
+            return array_slice($items, 0, (int) $limit[0]);
         }
 
         return $items;

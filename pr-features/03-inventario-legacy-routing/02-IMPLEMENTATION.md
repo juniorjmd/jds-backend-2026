@@ -1,103 +1,62 @@
-# Feature-03: Inventario Module Legacy Routing - IMPLEMENTATION
+# Feature-03: Inventario Legacy Routing - IMPLEMENTATION
 
-## 🏗️ Cambios Implementados
+## Backend
 
-### 1. config/inventario-actions.php
-```php
-use App\Modules\Inventario\InventarioController;
+Se completó la cobertura visible del legacy del módulo `inventario`.
 
-return [
-    'STOCK_MOVE' => [InventarioController::class, 'recordStockMove'],
-    'STOCK_MOVE_DEVOLUCION' => [InventarioController::class, 'recordStockMoveDevolución'],
-    'BORRAR_DATOS_INGRESO_AUX_INVENTARIO' => [InventarioController::class, 'cancelPrechart'],
-    'INGRESO_DATOS_DATOS_AUX_INVENTARIO' => [InventarioController::class, 'savePrechart'],
-];
-```
+Cambios principales:
 
-### 2. app/Bootstrap/Routes.php
-Actualizar carga de config files:
-```php
-$inventarioActions = (static function() {
-    return require __DIR__ . '/../../config/inventario-actions.php';
-})();
-```
+- `config/inventario-actions.php`
+  - ahora incluye todas las acciones visibles del entrypoint legacy
+- `app/Modules/Inventario/InventarioController.php`
+  - ya no envía payloads legacy crudos
+  - responde solo con `Response::ok()` y `Response::fail()`
+- `app/Modules/Inventario/Services/InventarioService.php`
+  - reorganizado para devolver payloads consistentes dentro de `data`
+  - agrega soporte a:
+    - traslados entre bodegas
+    - catalogos de categorias y bodegas
+    - busqueda por categoria
+    - busqueda por marca
+    - variante `BUSCAR_TODOS_LOS_PRODUCTOS_OLD`
 
-Agregar al array_merge:
-```php
-is_array($inventarioActions) ? $inventarioActions : []
-```
+Payloads de dominio principales:
 
-### 3. app/Modules/Inventario/InventarioController.php
-Crear controlador con 4 métodos HTTP handlers.
+- `movement`
+- `transfer`
+- `categories`
+- `warehouses`
+- `items`
+- `products`
+- `product`
+- `productExistence`
 
-### 4. app/Modules/Inventario/Services/InventarioService.php
-Crear service con lógica de negocio para cada acción.
+## Frontend
 
-## 🎯 Implementación Paso a Paso
+Se alineó `ProductoService` para leer el contrato estándar del backend nuevo.
 
-La implementación sigue exactamente el patrón de Carwash:
+Cambios principales:
 
-1. Mapear acciones en config/inventario-actions.php
-2. Cargar en Routes::map()
-3. Crear InventarioController con handlers
-4. Crear InventarioService con lógica
-5. Tests unitarios (5 parameters + 5 service = 10 tests)
+- nuevo archivo:
+  - `src/app/interfaces/inventario-response.interface.ts`
+- `src/app/services/producto.service.ts`
+  - desempaqueta el envelope `ok/data/error`
+  - agrega `getErrorMessage()`
+  - adapta respuestas del backend a la forma que aún consumen los componentes actuales
+- también se migraron las lecturas de:
+  - `GET_CATEGORIAS`
+  - `GET_BODEGAS`
 
-## 🔄 Flujo de Request
+## Pruebas
 
-```
-Frontend → POST / {action: 'STOCK_MOVE', ...}
-         ↓
-Router::dispatch() → Detecta NO /api
-                   ↓
-Router::dispatchLegacyAction()
-                   ↓
-Routes::map() → Busca 'STOCK_MOVE'
-                ↓
-InventarioController::recordStockMove()
-                ↓
-InventarioService::recordStockMove()
-                ↓
-Response JSON al frontend
-```
+- backend:
+  - `tests/Unit/InventarioParametersTest.php`
+  - `tests/Unit/InventarioServiceTest.php`
+- frontend:
+  - `src/app/services/producto.service.spec.ts`
 
-## 📝 Métodos del Controller
+## Resultado
 
-1. **recordStockMove()** - Registra movimiento de stock
-   - Parámetros: id_documento, id_producto, cantidad, tipo_movimiento
-   - Retorna: Nuevo estado del stock
-
-2. **recordStockMoveDevolución()** - Registra devolución
-   - Parámetros: id_documento, id_producto, cantidad
-   - Retorna: Stock después de devolución
-
-3. **cancelPrechart()** - Cancela pre-carga
-   - Parámetros: id_ingreso
-   - Retorna: { success: true }
-
-4. **savePrechart()** - Guarda pre-carga
-   - Parámetros: listado (JSON array), id_ingreso
-   - Retorna: Pre-carga guardada
-
-## 📋 Archivos Creados
-
-```
-config/inventario-actions.php                          (nuevo)
-app/Modules/Inventario/InventarioController.php        (nuevo)
-app/Modules/Inventario/Services/InventarioService.php  (nuevo)
-tests/Unit/InventarioParametersTest.php                (nuevo)
-tests/Unit/InventarioServiceTest.php                   (nuevo)
-```
-
-## 📊 Archivos Modificados
-
-```
-app/Bootstrap/Routes.php                               (actualizado)
-```
-
-## ✅ Validación
-
-Todos los tests pasan en el nivel unitario. Próximas fases:
-- Integración (cuando BD disponible)
-- HTTP manual (cuando BD disponible)
-- Frontend real (cuando todo esté listo)
+- backend con respuesta HTTP estándar única
+- cobertura visible del legacy cerrada para `inventario`
+- frontend alineado desde el servicio sin exigir un refactor masivo de todos los componentes del módulo en esta misma pasada

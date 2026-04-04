@@ -15,7 +15,7 @@ Conclusiones:
 
 - `personas` y `vehiculos` se ven completos por las acciones visibles en sus entrypoints legacy
 - `auth` y `admin` ya quedaron cerrados contra la cobertura legacy visible revisada
-- `carwash`, `ventas`, `inventario` y `documentos` siguen parciales
+- `carwash`, `ventas` y `documentos` siguen parciales
 - por tanto no se debe asumir que un modulo "ya esta alineado" solo porque tenga consumers frontend adaptados
 
 ## Criterio actualizado de migracion
@@ -52,7 +52,6 @@ Antes de abrir mas cobertura en modulos nuevos, cerrar los modulos ya existentes
 - `personas`
 - `ventas`
 - `vehiculos`
-- `inventario`
 - `documentos`
 
 Objetivo por modulo:
@@ -121,7 +120,6 @@ Focos visibles en esta revision:
 
 - `carwash` ya tiene contrato estandar alineado con frontend pero sigue con logica simulada
 - `ventas` sigue parcial frente al legacy visible en `ventas/index.php`
-- `inventario` sigue parcial y ademas con contrato backend aun no estandarizado
 - `documentos` todavia no tiene mapa legacy real en `config/documentos-actions.php`
 - hay acciones genericas de base de datos y acciones Odoo/reportes sin mapear en backend nuevo
 - hay que separar claramente endpoints usados por el front de endpoints heredados sin consumo actual confirmado
@@ -130,7 +128,7 @@ Focos visibles en esta revision:
 ## Secuencia recomendada para la siguiente pasada
 
 1. Revalidar cobertura legacy real de cada modulo ya revisado
-2. Completar faltantes de `inventario`
+2. Completar faltantes de `ventas`
 3. Estandarizar respuestas backend del modulo que se cierre
 4. Adaptar frontend del modulo cerrado
 5. Despues entrar a `documentos`

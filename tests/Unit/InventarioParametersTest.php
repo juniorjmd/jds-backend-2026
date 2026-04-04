@@ -24,6 +24,7 @@ class InventarioParametersTest
         $this->testInventarioActionsMapping();
         $this->testRoutesLoadsInventarioActions();
         $this->testInventarioControllerExists();
+        $this->testAllVisibleLegacyActionsAreMapped();
         $this->testStockMoveAcceptsLegacyParameters();
         $this->testActionDetected();
 
@@ -42,12 +43,18 @@ class InventarioParametersTest
             $expectedActions = [
                 'STOCK_MOVE',
                 'STOCK_MOVE_DEVOLUCION',
+                'TRASLADO_ENTRE_BODEGAS',
+                'GET_CATEGORIAS',
                 'BORRAR_DATOS_INGRESO_AUX_INVENTARIO',
                 'INGRESO_DATOS_DATOS_AUX_INVENTARIO',
+                'GET_BODEGAS',
                 'SET_ACTIVIDAD_DESCUENTO',
                 'INSERTAR_NUEVO_PRODUCTO',
                 'ACTULIZAR_PRODUCTO',
                 'BUSCAR_TODOS_LOS_PRODUCTOS',
+                'BUSCAR_TODOS_LOS_PRODUCTOS_OLD',
+                'BUSCAR_TODOS_LOS_PRODUCTOS_POR_CATEGORIA',
+                'BUSCAR_TODOS_LOS_PRODUCTOS_POR_MARCA',
                 'BUSCAR_TODOS_LOS_PRODUCTOS_POR_NOMBRE',
                 'BUSCAR_PRODUCTO',
                 'BUSCAR_EXISTENCIA_PRODUCTO',
@@ -79,12 +86,18 @@ class InventarioParametersTest
             $expectedActions = [
                 'STOCK_MOVE',
                 'STOCK_MOVE_DEVOLUCION',
+                'TRASLADO_ENTRE_BODEGAS',
+                'GET_CATEGORIAS',
                 'BORRAR_DATOS_INGRESO_AUX_INVENTARIO',
                 'INGRESO_DATOS_DATOS_AUX_INVENTARIO',
+                'GET_BODEGAS',
                 'SET_ACTIVIDAD_DESCUENTO',
                 'INSERTAR_NUEVO_PRODUCTO',
                 'ACTULIZAR_PRODUCTO',
                 'BUSCAR_TODOS_LOS_PRODUCTOS',
+                'BUSCAR_TODOS_LOS_PRODUCTOS_OLD',
+                'BUSCAR_TODOS_LOS_PRODUCTOS_POR_CATEGORIA',
+                'BUSCAR_TODOS_LOS_PRODUCTOS_POR_MARCA',
                 'BUSCAR_TODOS_LOS_PRODUCTOS_POR_NOMBRE',
                 'BUSCAR_PRODUCTO',
                 'BUSCAR_EXISTENCIA_PRODUCTO',
@@ -116,12 +129,18 @@ class InventarioParametersTest
             $methods = [
                 'recordStockMove',
                 'recordStockMoveDevolución',
+                'transferBetweenWarehouses',
+                'getCategories',
                 'cancelPrechart',
                 'savePrechart',
+                'getWarehouses',
                 'createDiscountActivity',
                 'createProduct',
                 'updateProduct',
                 'getAllProducts',
+                'getAllProductsOld',
+                'getProductsByCategory',
+                'getProductsByBrand',
                 'getProductsByName',
                 'getProductById',
                 'getProductExistenceByDocument',
@@ -143,9 +162,49 @@ class InventarioParametersTest
         }
     }
 
+    private function testAllVisibleLegacyActionsAreMapped(): void
+    {
+        echo "TEST 4: all visible legacy inventario actions are mapped... ";
+
+        try {
+            $actions = require __DIR__ . '/../../config/inventario-actions.php';
+            $legacyActions = [
+                'devolver_producto_venta',
+                'TRASLADO_ENTRE_BODEGAS',
+                'GET_CATEGORIAS',
+                'INGRESO_DATOS_DATOS_AUX_INVENTARIO',
+                'GET_BODEGAS',
+                'BORRAR_DATOS_INGRESO_AUX_INVENTARIO',
+                'BUSCAR_TODOS_LOS_PRODUCTOS',
+                'BUSCAR_TODOS_LOS_PRODUCTOS_OLD',
+                'BUSCAR_TODOS_LOS_PRODUCTOS_POR_CATEGORIA',
+                'BUSCAR_TODOS_LOS_PRODUCTOS_POR_MARCA',
+                'BUSCAR_TODOS_LOS_PRODUCTOS_POR_NOMBRE',
+                'BUSCAR_PRODUCTO',
+                'BUSCAR_EXISTENCIA_PRODUCTO',
+                'BUSCAR_PRODUCTO_COD_BARRAS',
+                'INSERTAR_NUEVO_PRODUCTO',
+                'ACTULIZAR_PRODUCTO',
+                'SET_ACTIVIDAD_DESCUENTO',
+            ];
+
+            foreach ($legacyActions as $action) {
+                if (!array_key_exists($action, $actions)) {
+                    throw new \Exception("Missing visible legacy action: $action");
+                }
+            }
+
+            echo "✓ PASSED\n";
+            $this->passCount++;
+        } catch (\Exception $e) {
+            echo "✗ FAILED: {$e->getMessage()}\n";
+            $this->failCount++;
+        }
+    }
+
     private function testStockMoveAcceptsLegacyParameters(): void
     {
-        echo "TEST 4: inventario actions accept real legacy parameters... ";
+        echo "TEST 5: inventario actions accept real legacy parameters... ";
 
         try {
             $body = [
@@ -181,7 +240,7 @@ class InventarioParametersTest
 
     private function testActionDetected(): void
     {
-        echo "TEST 5: Action is detected correctly... ";
+        echo "TEST 6: Action is detected correctly... ";
 
         try {
             $body = ['action' => 'STOCK_MOVE'];

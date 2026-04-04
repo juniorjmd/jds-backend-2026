@@ -20,67 +20,69 @@ class InventarioController
         $this->service = $service;
     }
 
-    /**
-     * Registra un movimiento de stock
-     * Parámetros: id_documento, id_producto, cantidad, tipo_movimiento
-     */
     public function recordStockMove(): void
     {
         try {
-            $result = $this->service->recordStockMove(
+            Response::ok($this->service->recordStockMove(
                 documentId: (int) $this->request->input('id_documento', 0),
                 productId: (int) $this->request->input('id_producto', 0),
                 quantity: (float) $this->request->input('cantidad', 0),
                 movementType: $this->request->input('tipo_movimiento', 'salida')
-            );
-
-            $this->sendLegacyResponse($result);
+            ));
         } catch (\Exception $e) {
-            $this->sendLegacyError($e->getMessage());
+            Response::fail('STOCK_MOVE_ERROR', $e->getMessage());
         }
     }
 
-    /**
-     * Registra una devolución de stock
-     * Parámetros: id_documento, id_producto, cantidad
-     */
     public function recordStockMoveDevolución(): void
     {
         try {
-            $result = $this->service->recordStockMoveDevolución(
+            Response::ok($this->service->recordStockMoveDevolución(
                 documentId: (int) $this->request->input('id_documento', 0),
                 productId: (int) $this->request->input('id_producto', 0),
                 quantity: (float) $this->request->input('cantidad', 0)
-            );
-
-            $this->sendLegacyResponse($result);
+            ));
         } catch (\Exception $e) {
-            $this->sendLegacyError($e->getMessage());
+            Response::fail('STOCK_MOVE_DEVOLUCION_ERROR', $e->getMessage());
         }
     }
 
-    /**
-     * Cancela una pre-carga de ingreso
-     * Parámetros: id_ingreso
-     */
+    public function transferBetweenWarehouses(): void
+    {
+        try {
+            Response::ok($this->service->transferBetweenWarehouses(
+                sourceWarehouseId: (int) $this->request->input('id_bodega_origen', 0),
+                targetWarehouseId: (int) $this->request->input('id_bodega_destino', 0),
+                productId: (string) $this->request->input('id_producto', ''),
+                quantity: (float) $this->request->input('cantidad', 0),
+                userId: (int) $this->request->input('id_usuario', 0)
+            ));
+        } catch (\Exception $e) {
+            Response::fail('TRASLADO_ENTRE_BODEGAS_ERROR', $e->getMessage());
+        }
+    }
+
+    public function getCategories(): void
+    {
+        try {
+            Response::ok($this->service->getCategories());
+        } catch (\Exception $e) {
+            Response::fail('GET_CATEGORIAS_ERROR', $e->getMessage());
+        }
+    }
+
     public function cancelPrechart(): void
     {
         try {
-            $result = $this->service->cancelPrechart(
+            Response::ok($this->service->cancelPrechart(
                 ingressId: (int) $this->request->input('id_ingreso', 0),
                 warehouseId: (int) $this->request->input('bodega_ingreso', 0)
-            );
-
-            $this->sendLegacyResponse($result);
+            ));
         } catch (\Exception $e) {
-            $this->sendLegacyError($e->getMessage());
+            Response::fail('BORRAR_DATOS_INGRESO_AUX_INVENTARIO_ERROR', $e->getMessage());
         }
     }
 
-    /**
-     * Guarda una pre-carga de ingreso
-     * Parámetros: listado (JSON), id_ingreso
-     */
     public function savePrechart(): void
     {
         try {
@@ -89,126 +91,148 @@ class InventarioController
                 $listado = json_decode($listado, true) ?: [];
             }
 
-            $result = $this->service->savePrechart(
+            Response::ok($this->service->savePrechart(
                 items: $listado,
                 ingressId: (int) $this->request->input('id_ingreso', 0),
                 ingressPayload: $this->normalizeIngreso($this->request->input('ingreso', []))
-            );
-
-            $this->sendLegacyResponse($result);
+            ));
         } catch (\Exception $e) {
-            $this->sendLegacyError($e->getMessage());
+            Response::fail('INGRESO_DATOS_DATOS_AUX_INVENTARIO_ERROR', $e->getMessage());
+        }
+    }
+
+    public function getWarehouses(): void
+    {
+        try {
+            Response::ok($this->service->getWarehouses());
+        } catch (\Exception $e) {
+            Response::fail('GET_BODEGAS_ERROR', $e->getMessage());
         }
     }
 
     public function createDiscountActivity(): void
     {
         try {
-            $this->sendLegacyResponse(
-                $this->service->createDiscountActivity(
-                    $this->request->input('datosInsert', [])
-                )
-            );
+            Response::ok($this->service->createDiscountActivity(
+                $this->normalizeArray($this->request->input('datosInsert', []))
+            ));
         } catch (\Exception $e) {
-            $this->sendLegacyError($e->getMessage());
+            Response::fail('SET_ACTIVIDAD_DESCUENTO_ERROR', $e->getMessage());
         }
     }
 
     public function createProduct(): void
     {
         try {
-            $this->sendLegacyResponse(
-                $this->service->createProduct(
-                    $this->normalizeProducto($this->request->input('producto_enviado', []))
-                )
-            );
+            Response::ok($this->service->createProduct(
+                $this->normalizeProducto($this->request->input('producto_enviado', []))
+            ));
         } catch (\Exception $e) {
-            $this->sendLegacyError($e->getMessage());
+            Response::fail('INSERTAR_NUEVO_PRODUCTO_ERROR', $e->getMessage());
         }
     }
 
     public function updateProduct(): void
     {
         try {
-            $this->sendLegacyResponse(
-                $this->service->updateProduct(
-                    $this->normalizeProducto($this->request->input('producto_enviado', []))
-                )
-            );
+            Response::ok($this->service->updateProduct(
+                $this->normalizeProducto($this->request->input('producto_enviado', []))
+            ));
         } catch (\Exception $e) {
-            $this->sendLegacyError($e->getMessage());
+            Response::fail('ACTULIZAR_PRODUCTO_ERROR', $e->getMessage());
         }
     }
 
     public function getAllProducts(): void
     {
         try {
-            $this->sendLegacyResponse(
-                $this->service->getAllProducts($this->normalizeLimit($this->request->input('limit', [])))
-            );
+            Response::ok($this->service->getAllProducts($this->normalizeLimit($this->request->input('limit', []))));
         } catch (\Exception $e) {
-            $this->sendLegacyError($e->getMessage());
+            Response::fail('BUSCAR_TODOS_LOS_PRODUCTOS_ERROR', $e->getMessage());
+        }
+    }
+
+    public function getAllProductsOld(): void
+    {
+        try {
+            Response::ok($this->service->getAllProductsOld($this->normalizeLimit($this->request->input('limit', []))));
+        } catch (\Exception $e) {
+            Response::fail('BUSCAR_TODOS_LOS_PRODUCTOS_OLD_ERROR', $e->getMessage());
+        }
+    }
+
+    public function getProductsByCategory(): void
+    {
+        try {
+            Response::ok($this->service->getProductsByCategory(
+                categoryId: (int) $this->request->input('id_cate', 0),
+                limit: $this->normalizeLimit($this->request->input('limit', []))
+            ));
+        } catch (\Exception $e) {
+            Response::fail('BUSCAR_TODOS_LOS_PRODUCTOS_POR_CATEGORIA_ERROR', $e->getMessage());
+        }
+    }
+
+    public function getProductsByBrand(): void
+    {
+        try {
+            Response::ok($this->service->getProductsByBrand(
+                brandId: (int) $this->request->input('id_brand', 0),
+                limit: $this->normalizeLimit($this->request->input('limit', []))
+            ));
+        } catch (\Exception $e) {
+            Response::fail('BUSCAR_TODOS_LOS_PRODUCTOS_POR_MARCA_ERROR', $e->getMessage());
         }
     }
 
     public function getProductsByName(): void
     {
         try {
-            $this->sendLegacyResponse(
-                $this->service->getProductsByName(
-                    searchText: (string) $this->request->input('dato_busqueda', ''),
-                    limit: $this->normalizeLimit($this->request->input('limit', []))
-                )
-            );
+            Response::ok($this->service->getProductsByName(
+                searchText: (string) $this->request->input('dato_busqueda', ''),
+                limit: $this->normalizeLimit($this->request->input('limit', []))
+            ));
         } catch (\Exception $e) {
-            $this->sendLegacyError($e->getMessage());
+            Response::fail('BUSCAR_TODOS_LOS_PRODUCTOS_POR_NOMBRE_ERROR', $e->getMessage());
         }
     }
 
     public function getProductById(): void
     {
         try {
-            $this->sendLegacyResponse(
-                $this->service->getProductById((string) $this->request->input('id_producto', ''))
-            );
+            Response::ok($this->service->getProductById((string) $this->request->input('id_producto', '')));
         } catch (\Exception $e) {
-            $this->sendLegacyError($e->getMessage());
+            Response::fail('BUSCAR_PRODUCTO_ERROR', $e->getMessage());
         }
     }
 
     public function getProductExistenceByDocument(): void
     {
         try {
-            $this->sendLegacyResponse(
-                $this->service->getProductExistenceByDocument(
-                    productId: (string) $this->request->input('id_producto', ''),
-                    documentOrder: (int) $this->request->input('orden_documento', 0)
-                )
-            );
+            Response::ok($this->service->getProductExistenceByDocument(
+                productId: (string) $this->request->input('id_producto', ''),
+                documentOrder: (int) $this->request->input('orden_documento', 0)
+            ));
         } catch (\Exception $e) {
-            $this->sendLegacyError($e->getMessage());
+            Response::fail('BUSCAR_EXISTENCIA_PRODUCTO_ERROR', $e->getMessage());
         }
     }
 
     public function getProductByIdOrBarcode(): void
     {
         try {
-            $this->sendLegacyResponse(
-                $this->service->getProductByIdOrBarcode((string) $this->request->input('id_producto', ''))
-            );
+            Response::ok($this->service->getProductByIdOrBarcode((string) $this->request->input('id_producto', '')));
         } catch (\Exception $e) {
-            $this->sendLegacyError($e->getMessage());
+            Response::fail('BUSCAR_PRODUCTO_COD_BARRAS_ERROR', $e->getMessage());
         }
     }
 
     public function returnProductSale(): void
     {
         try {
-            $this->sendLegacyResponse(
-                $this->service->returnProductSale($this->request->input('producto_enviado', []))
-            );
+            Response::ok($this->service->returnProductSale($this->request->input('producto_enviado', [])));
         } catch (\Exception $e) {
-            $this->sendLegacyError($e->getMessage());
+            Response::fail('DEVOLVER_PRODUCTO_VENTA_ERROR', $e->getMessage());
         }
     }
 
@@ -222,24 +246,13 @@ class InventarioController
         return is_array($producto) ? $producto : [];
     }
 
+    private function normalizeArray(mixed $payload): array
+    {
+        return is_array($payload) ? $payload : [];
+    }
+
     private function normalizeLimit(mixed $limit): array
     {
         return is_array($limit) ? $limit : [];
-    }
-
-    private function sendLegacyResponse(array $payload): void
-    {
-        (new Response())
-            ->status(200)
-            ->json($payload)
-            ->send();
-    }
-
-    private function sendLegacyError(string $message): void
-    {
-        (new Response())
-            ->status(500)
-            ->json(['error' => $message])
-            ->send();
     }
 }

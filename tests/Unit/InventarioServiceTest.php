@@ -48,7 +48,7 @@ class InventarioServiceTest
         $this->testInventarioServiceExists();
         $this->testResponseStructureSuccess();
         $this->testResponseStructureError();
-        $this->testRecordStockMoveReturnType();
+        $this->testProductsFiltersAndCatalogs();
         $this->testServiceRequiresAuthentication();
 
         $this->printSummary();
@@ -66,12 +66,18 @@ class InventarioServiceTest
             $methods = [
                 'recordStockMove',
                 'recordStockMoveDevolución',
+                'transferBetweenWarehouses',
+                'getCategories',
                 'cancelPrechart',
                 'savePrechart',
+                'getWarehouses',
                 'createDiscountActivity',
                 'createProduct',
                 'updateProduct',
                 'getAllProducts',
+                'getAllProductsOld',
+                'getProductsByCategory',
+                'getProductsByBrand',
                 'getProductsByName',
                 'getProductById',
                 'getProductExistenceByDocument',
@@ -95,7 +101,7 @@ class InventarioServiceTest
 
     private function testResponseStructureSuccess(): void
     {
-        echo "TEST 2: Response has correct JSON structure (success)... ";
+        echo "TEST 2: Response has correct standard payload structure... ";
 
         try {
             $body = ['action' => 'STOCK_MOVE', 'id_documento' => 123];
@@ -110,16 +116,16 @@ class InventarioServiceTest
                 throw new \Exception("recordStockMove did not return array");
             }
 
-            if (($result['error'] ?? null) !== 'ok') {
-                throw new \Exception("Response missing error=ok");
+            if (!isset($result['movement']) || !is_array($result['movement'])) {
+                throw new \Exception("Response missing movement");
             }
 
-            if (!array_key_exists('stock_move_id', $result)) {
-                throw new \Exception("Response missing stock_move_id");
+            if (($result['movement']['productId'] ?? null) !== 567) {
+                throw new \Exception("Response missing productId");
             }
 
-            if (!array_key_exists('documento_id', $result)) {
-                throw new \Exception("Response missing documento_id");
+            if (!array_key_exists('message', $result)) {
+                throw new \Exception("Response missing message");
             }
 
             echo "✓ PASSED\n";
@@ -159,9 +165,9 @@ class InventarioServiceTest
         }
     }
 
-    private function testRecordStockMoveReturnType(): void
+    private function testProductsFiltersAndCatalogs(): void
     {
-        echo "TEST 4: recordStockMove returns correct data types... ";
+        echo "TEST 4: inventario catalogs and filters return expected payloads... ";
 
         try {
             $body = [];
@@ -170,22 +176,24 @@ class InventarioServiceTest
             $mockAuthContext = $this->createMockAuthContext(['USUARIO' => 'admin']);
 
             $service = new \App\Modules\Inventario\Services\InventarioService($request, $mockAuthContext);
-            $result = $service->recordStockMove(123, 456, 10, 'salida');
-
-            if (!is_int($result['stock_move_id'])) {
-                throw new \Exception("stock_move_id must be int");
+            $catalogs = $service->getCategories();
+            if (($catalogs['count'] ?? 0) <= 0) {
+                throw new \Exception("Categories response is empty");
             }
 
-            if (!is_int($result['documento_id'])) {
-                throw new \Exception("documento_id must be int");
+            $productsByCategory = $service->getProductsByCategory(10, [0, 10]);
+            if (($productsByCategory['count'] ?? 0) !== 1) {
+                throw new \Exception("Expected one product in category 10");
             }
 
-            if (!is_numeric($result['cantidad_movida'])) {
-                throw new \Exception("cantidad_movida must be numeric");
+            $productsByBrand = $service->getProductsByBrand(21, [0, 10]);
+            if (($productsByBrand['count'] ?? 0) !== 1) {
+                throw new \Exception("Expected one product in brand 21");
             }
 
-            if (!is_string($result['tipo_movimiento'])) {
-                throw new \Exception("tipo_movimiento must be string");
+            $productExistence = $service->getProductExistenceByDocument('101', 1);
+            if (($productExistence['productExistence']['idProducto'] ?? null) !== '101') {
+                throw new \Exception("Expected product existence payload");
             }
 
             echo "✓ PASSED\n";
@@ -211,12 +219,18 @@ class InventarioServiceTest
             $methods = [
                 ['recordStockMove', [0, 0, 0]],
                 ['recordStockMoveDevolución', [0, 0, 0]],
+                ['transferBetweenWarehouses', [1, 2, '101', 1]],
+                ['getCategories', []],
                 ['cancelPrechart', [0]],
                 ['savePrechart', [[], 0]],
+                ['getWarehouses', []],
                 ['createDiscountActivity', [['nombre' => 'Promo']]],
                 ['createProduct', [['nombre' => 'Producto']]],
                 ['updateProduct', [['nombre' => 'Producto']]],
                 ['getAllProducts', [[]]],
+                ['getAllProductsOld', [[]]],
+                ['getProductsByCategory', [10, []]],
+                ['getProductsByBrand', [20, []]],
                 ['getProductsByName', ['shampoo', []]],
                 ['getProductById', ['101']],
                 ['getProductExistenceByDocument', ['101', 1]],

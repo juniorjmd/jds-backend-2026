@@ -1,81 +1,53 @@
-# Feature-03: Inventario Module Legacy Routing - SPECS
+# Feature-03: Inventario Legacy Routing - SPECS
 
-## 📋 Objetivo
-Implementar compatibilidad backward-compatible para acciones legacy del módulo Inventario, permitiendo que el frontend actual continúe funcionando.
+## Objetivo
 
-## 🎯 Requisitos Funcionales
+Cerrar la cobertura visible del modulo `inventario` del backend legacy y exponer todas sus respuestas a traves del envelope estandar `ok/data/error`.
 
-### RF-01: Mapeo de Acciones Legacy
-El sistema debe mapear 4 acciones legacy del módulo Inventario a sus handlers:
+## Acciones legacy visibles a cubrir
 
-| Acción | Hash/ID | Método Esperado | Descripción |
-|--------|---------|-----------------|-------------|
-| Stock Move | `STOCK_MOVE` | `InventarioController::recordStockMove()` | Registra movimiento de stock (salida/entrada) |
-| Stock Move Devolución | `STOCK_MOVE_DEVOLUCION` | `InventarioController::recordStockMoveDevolución()` | Registra devolución/reintegro de stock |
-| Cancelar Ingreso | `BORRAR_DATOS_INGRESO_AUX_INVENTARIO` | `InventarioController::cancelPrechart()` | Cancela pre-carga de ingreso |
-| Ingreso Pre-carga | `INGRESO_DATOS_DATOS_AUX_INVENTARIO` | `InventarioController::savePrechart()` | Guarda datos de pre-carga de ingreso |
+- `STOCK_MOVE`
+- `STOCK_MOVE_DEVOLUCION`
+- `TRASLADO_ENTRE_BODEGAS`
+- `GET_CATEGORIAS`
+- `INGRESO_DATOS_DATOS_AUX_INVENTARIO`
+- `GET_BODEGAS`
+- `BORRAR_DATOS_INGRESO_AUX_INVENTARIO`
+- `BUSCAR_TODOS_LOS_PRODUCTOS`
+- `BUSCAR_TODOS_LOS_PRODUCTOS_OLD`
+- `BUSCAR_TODOS_LOS_PRODUCTOS_POR_CATEGORIA`
+- `BUSCAR_TODOS_LOS_PRODUCTOS_POR_MARCA`
+- `BUSCAR_TODOS_LOS_PRODUCTOS_POR_NOMBRE`
+- `BUSCAR_PRODUCTO`
+- `BUSCAR_EXISTENCIA_PRODUCTO`
+- `BUSCAR_PRODUCTO_COD_BARRAS`
+- `INSERTAR_NUEVO_PRODUCTO`
+- `ACTULIZAR_PRODUCTO`
+- `SET_ACTIVIDAD_DESCUENTO`
+- `devolver_producto_venta`
 
-### RF-02: Parámetros Legacy
-El módulo Inventario acepta múltiples parámetros según la acción:
+## Contrato backend requerido
 
-**Para STOCK_MOVE:**
-```json
-{
-  "action": "STOCK_MOVE",
-  "_usuario": "admin",
-  "_password": "admin123",
-  "_llaveSession": "token123",
-  "id_documento": 12345,
-  "id_producto": 567,
-  "cantidad": 10,
-  "precio": 25000,
-  "tipo_movimiento": "salida"
-}
-```
+- exito:
+  - `ok: true`
+  - `data: {...}`
+  - `error: null`
+- error:
+  - `ok: false`
+  - `data: null`
+  - `error.code`
+  - `error.message`
 
-**Para INGRESO_DATOS_DATOS_AUX_INVENTARIO:**
-```json
-{
-  "action": "INGRESO_DATOS_DATOS_AUX_INVENTARIO",
-  "_usuario": "admin",
-  "listado": "[{...}]",
-  "id_ingreso": 789
-}
-```
+## Regla de alineacion con frontend
 
-### RF-03: Estructura de Respuesta
-Respuestas mantienen compatibilidad con formato legacy:
+- el backend conserva compatibilidad de entrada legacy
+- el frontend deja de leer la respuesta HTTP legacy cruda
+- `ProductoService` se vuelve la capa de adaptacion del modulo
 
-**Éxito (STOCK_MOVE):**
-```json
-{
-  "success": true,
-  "message": "Stock registrado correctamente",
-  "data": {
-    "stock_move_id": 1,
-    "producto_id": 567,
-    "cantidad_anterior": 50,
-    "cantidad_nueva": 40,
-    "tipo_movimiento": "salida"
-  }
-}
-```
+## Criterios de aceptacion
 
-## ✅ Criterios de Aceptación
-
-1. **Mapeo**: Los 4 hashes se resuelven correctamente a handlers
-2. **Parámetros**: Ambos estilos (legacy y moderno) funcionan
-3. **Unitarios**: 10/10 tests pasando (5 mapping + 5 service)
-4. **Compatibilidad**: Sin cambios requeridos en frontend
-
-## 📊 Impacto
-
-- Archivos nuevos: 4
-- Archivos modificados: 1 (Routes.php)
-- BD: Sin cambios
-- Frontend: SIN CAMBIOS
-
-## 🎓 Referencias
-
-- [Auth Legacy Routing](../01-auth-legacy-routing/02-IMPLEMENTATION.md)
-- [Carwash Legacy Routing](../02-carwash-legacy-routing/02-IMPLEMENTATION.md)
+1. Todas las acciones visibles del `inventario/index.php` legacy quedan mapeadas.
+2. `InventarioController` responde solo con `Response::ok()` y `Response::fail()`.
+3. `InventarioService` ya no devuelve payload raiz con `error/numdata/data` mezclados.
+4. `ProductoService` desempaqueta el envelope estandar y entrega datos normalizados a los componentes.
+5. Existen pruebas de backend y frontend para el modulo.

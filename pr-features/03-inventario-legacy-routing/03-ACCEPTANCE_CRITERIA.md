@@ -1,67 +1,39 @@
-# Feature-03: Inventario Module Legacy Routing - ACCEPTANCE CRITERIA
+# Feature-03: Inventario Legacy Routing - ACCEPTANCE CRITERIA
 
-## ✅ CAT-01: Mapeo de 4 Acciones Legacy
+## Criterios del modulo
 
-- [ ] Archivo `config/inventario-actions.php` existe
-- [ ] Contiene 4 acciones correctamente mapeadas
-- [ ] Archivo retorna array PHP
+### CAT-01
 
-**TEST**: `tests/Unit/InventarioParametersTest.php::TEST 1`
+`config/inventario-actions.php` contiene todas las acciones visibles del `inventario/index.php` legacy.
 
-## ✅ CAT-02: Routes Carga Acciones
+### CAT-02
 
-- [ ] `Routes::map()` carga `config/inventario-actions.php`
-- [ ] Las 4 acciones están en el mapa final
+`InventarioController` ya no devuelve respuestas legacy crudas y usa unicamente:
 
-**TEST**: `tests/Unit/InventarioParametersTest.php::TEST 2`
+- `Response::ok()`
+- `Response::fail()`
 
-## ✅ CAT-03: InventarioController Existe
+### CAT-03
 
-- [ ] 4 métodos públicos creados
-- [ ] `recordStockMove()`, `recordStockMoveDevolución()`, `cancelPrechart()`, `savePrechart()`
+`InventarioService` devuelve payloads de dominio consistentes dentro de `data`.
 
-**TEST**: `tests/Unit/InventarioParametersTest.php::TEST 3-4`
+### CAT-04
 
-## ✅ CAT-04: InventarioService Existe
+`ProductoService` desempaqueta el envelope estándar y mantiene estable el consumo actual del módulo.
 
-- [ ] Misma estructura del flujo
+### CAT-05
 
-**TEST**: `tests/Unit/InventarioServiceTest.php::TEST 1`
+Las pruebas del módulo pasan:
 
-## ✅ CAT-05: Parámetros Legacy Aceptados
-
-- [ ] Todos los parámetros legacy se extraen correctamente
-
-**TEST**: `tests/Unit/InventarioParametersTest.php::TEST 5`
-
-## ✅ CAT-06: 10/10 Tests Unitarios Pasando
-
-- [ ] 5 tests de parámetros ✓
-- [ ] 5 tests de service ✓
-
-**COMMAND**:
 ```bash
-php tests/Unit/InventarioParametersTest.php && php tests/Unit/InventarioServiceTest.php
-# Esperado: PASSED 10/10
+php tests/Unit/InventarioParametersTest.php
+php tests/Unit/InventarioServiceTest.php
+npx ng test jds_carwash --watch=false --browsers ChromeHeadless --include src/app/services/producto.service.spec.ts
 ```
 
-## 📋 Checklist de Implementación
+## Estado esperado
 
-**Código**:
-- [ ] config/inventario-actions.php creado
-- [ ] app/Modules/Inventario/InventarioController.php creado  
-- [ ] app/Modules/Inventario/Services/InventarioService.php creado
-- [ ] Routes.php actualizado
-
-**Tests**:
-- [ ] tests/Unit/InventarioParametersTest.php creado y pasando
-- [ ] tests/Unit/InventarioServiceTest.php creado y pasando
-
-**Documentación**:
-- [ ] 01-SPECS.md completo
-- [ ] 02-IMPLEMENTATION.md completo
-- [ ] 03-ACCEPTANCE_CRITERIA.md (este archivo) completo
-
-**Git**:
-- [ ] Código commiteado con mensaje descriptivo
+- cobertura legacy visible: completa
+- contrato backend: estándar
+- frontend: alineado por servicio
 
