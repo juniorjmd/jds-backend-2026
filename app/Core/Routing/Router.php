@@ -55,7 +55,7 @@ final class Router
                 );
             }
 
-            $controller = new $controllerClass();
+            $controller = $this->createController($controllerClass, $request);
 
             if (!method_exists($controller, $method)) {
                 Response::fail(
@@ -72,7 +72,7 @@ final class Router
             $controllerClass = "App\\Modules\\" . ucfirst($module) . "\\" . ucfirst($module) . "Controller";
 
             if (class_exists($controllerClass)) {
-                $controller = new $controllerClass();
+                $controller = $this->createController($controllerClass, $request);
 
                 if (method_exists($controller, 'index')) {
                     return $controller->index($request);
@@ -122,6 +122,14 @@ final class Router
         };
 
         return $instance->$method();
+    }
+
+    private function createController(string $controllerClass, Request $request): object
+    {
+        return match ($controllerClass) {
+            DocumentosController::class => $this->createDocumentosController($request),
+            default => new $controllerClass(),
+        };
     }
 
     private function createDocumentosController(Request $request): DocumentosController
