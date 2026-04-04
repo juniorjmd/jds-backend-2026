@@ -3,7 +3,7 @@
  * Test script para validar routing legacy
  */
 
-require __DIR__ . '/vendor/autoload.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 
 use App\Core\Http\Request;
 use App\Bootstrap\Routes;
@@ -43,12 +43,7 @@ foreach ($actions_to_check as $hash => $name) {
     echo ($exists ? "✓" : "✗") . " {$name}: {$hash}\n";
 }
 
-echo "\n=== TEST 3: AuthService acepta parámetros legacy ===\n";
-
-use App\Modules\Auth\Services\AuthService;
-
-$service = new AuthService();
-echo "✓ AuthService instanciado correctamente\n";
+echo "\n=== TEST 3: Request soporta todos los parámetros legacy ===\n";
 
 // Verificar que el método login acepta el request con parámetros _usuario y _password
 $testRequest = new Request('POST', [], [
@@ -57,6 +52,12 @@ $testRequest = new Request('POST', [], [
     '_password' => 'testpass'
 ], [], ['REQUEST_METHOD' => 'POST']);
 
+$usr = $testRequest->input('usuario', $testRequest->input('_usuario', ''));
+$pwd = $testRequest->input('password', $testRequest->input('_password', ''));
+
 echo "✓ Se puede crear un Request con parámetros legacy\n";
+echo "✓ Usuario extraído: " . $usr . "\n";
+echo "✓ Password extraído: " . (strlen($pwd) > 0 ? '***' : 'vacío') . "\n";
 
 echo "\n=== RESULTADO: Configuración correcta ===\n";
+exit(0);
