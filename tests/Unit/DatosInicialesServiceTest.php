@@ -15,6 +15,10 @@ class DatosInicialesServiceTest
 
         $this->testGetPrincipalBranchDataReturnsRows();
         $this->testEmptyPrincipalBranchFails();
+        $this->testChangePasswordWithSessionValidatesConfirmation();
+        $this->testSetPasswordByUserCodeReturnsPayload();
+        $this->testGenerateSimulationPdfReturnsResults();
+        $this->testAssignQuestionsToFormRequiresQuestions();
 
         $this->printSummary();
         exit($this->failCount === 0 ? 0 : 1);
@@ -41,7 +45,7 @@ class DatosInicialesServiceTest
             $service = new DatosInicialesService($repository);
             $result = $service->getPrincipalBranchData();
 
-            if (($result[0]['nombre'] ?? '') !== 'Principal') {
+            if (($result['branches'][0]['nombre'] ?? '') !== 'Principal') {
                 throw new \Exception('Unexpected branch name');
             }
 
@@ -50,6 +54,106 @@ class DatosInicialesServiceTest
         } catch (\Throwable $e) {
             echo "✗ FAILED: {$e->getMessage()}\n";
             $this->failCount++;
+        }
+    }
+
+    private function testChangePasswordWithSessionValidatesConfirmation(): void
+    {
+        echo "TEST 3: changePasswordWithSession validates confirmation... ";
+
+        try {
+            $service = new DatosInicialesService(new class extends DatosInicialesRepository {
+                public function __construct()
+                {
+                }
+            });
+
+            $service->changePasswordWithSession('old', 'new', 'other', 'session-key');
+            throw new \Exception('Expected exception was not thrown');
+        } catch (\Throwable $e) {
+            if ($e->getMessage() !== 'Error de datos - Las contraseñas ingresadas no coinciden') {
+                echo "✗ FAILED: {$e->getMessage()}\n";
+                $this->failCount++;
+                return;
+            }
+
+            echo "✓ PASSED\n";
+            $this->passCount++;
+        }
+    }
+
+    private function testSetPasswordByUserCodeReturnsPayload(): void
+    {
+        echo "TEST 4: setPasswordByUserCode returns payload... ";
+
+        try {
+            $service = new DatosInicialesService(new class extends DatosInicialesRepository {
+                public function __construct()
+                {
+                }
+            });
+
+            $result = $service->setPasswordByUserCode(25, 'new-pass', 'new-pass');
+
+            if (($result['userCode'] ?? 0) !== 25) {
+                throw new \Exception('Unexpected userCode');
+            }
+
+            echo "✓ PASSED\n";
+            $this->passCount++;
+        } catch (\Throwable $e) {
+            echo "✗ FAILED: {$e->getMessage()}\n";
+            $this->failCount++;
+        }
+    }
+
+    private function testGenerateSimulationPdfReturnsResults(): void
+    {
+        echo "TEST 5: generateSimulationPdf returns results... ";
+
+        try {
+            $service = new DatosInicialesService(new class extends DatosInicialesRepository {
+                public function __construct()
+                {
+                }
+            });
+
+            $result = $service->generateSimulationPdf();
+
+            if (($result['count'] ?? 0) <= 0) {
+                throw new \Exception('Expected at least one result');
+            }
+
+            echo "✓ PASSED\n";
+            $this->passCount++;
+        } catch (\Throwable $e) {
+            echo "✗ FAILED: {$e->getMessage()}\n";
+            $this->failCount++;
+        }
+    }
+
+    private function testAssignQuestionsToFormRequiresQuestions(): void
+    {
+        echo "TEST 6: assignQuestionsToForm validates questions... ";
+
+        try {
+            $service = new DatosInicialesService(new class extends DatosInicialesRepository {
+                public function __construct()
+                {
+                }
+            });
+
+            $service->assignQuestionsToForm(1, 12, []);
+            throw new \Exception('Expected exception was not thrown');
+        } catch (\Throwable $e) {
+            if ($e->getMessage() !== 'Error de datos, faltan uno o mas valores para la consulta') {
+                echo "✗ FAILED: {$e->getMessage()}\n";
+                $this->failCount++;
+                return;
+            }
+
+            echo "✓ PASSED\n";
+            $this->passCount++;
         }
     }
 

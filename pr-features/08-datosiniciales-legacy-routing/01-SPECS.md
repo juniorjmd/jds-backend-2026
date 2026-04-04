@@ -1,21 +1,31 @@
 # Feature-08: DatosIniciales Module Legacy Routing - SPECS
 
 ## Objetivo
-Migrar solo la acción legacy de `datosiniciales` que el frontend actual usa de forma directa.
 
-## Requisitos Funcionales
+Cerrar el modulo `DatosIniciales` con cobertura completa del legacy visible en `datosiniciales/index.php`.
 
-### RF-01: Mapeo de acción usada por el frontend
-El sistema debe mapear:
+## Requisitos funcionales
 
-| Acción | Método Esperado | Uso detectado en frontend |
-|--------|-----------------|---------------------------|
-| `GET_SUCURSAL_PRINCIPAL_DATA` | `DatosInicialesController::getPrincipalBranchData()` | `DatosInicialesService.getDatosIniSucursal()` |
+### RF-01: Cobertura legacy visible
 
-### RF-02: Compatibilidad de payload
-- La respuesta debe conservar formato legacy compatible con el frontend actual.
-- La acción no exige autenticación, igual que el endpoint legacy original.
+El modulo debe cubrir:
 
-### RF-03: Alcance explícito
-- No se migran en esta feature las acciones hash restantes del módulo `datosiniciales`.
-- Cada acción no migrada debe quedar documentada como fuera de alcance por no evidenciar uso real en el frontend fuente.
+- `GET_SUCURSAL_PRINCIPAL_DATA`
+- `52444d9072f7ec12a26cb2879ebb4ab0bf5aa553`
+- `52444d9072f7ec12aJEE8FFJJKVNASDHQWFLKA`
+- `23929870008e23007350be74a708ab3a806dce13`
+- `8e9ae038c37d3b59fc1eed456c77aefb5eadffea`
+- `99c505a66a9d8a984059baf1b99bb9e6456ae4bb`
+
+### RF-02: Envelope estandar
+
+Todas las acciones deben responder con:
+
+- `ok`
+- `data`
+- `error`
+
+### RF-03: Distincion de uso frontend
+
+- `GET_SUCURSAL_PRINCIPAL_DATA` tiene consumo actual confirmado en frontend
+- las otras acciones quedan migradas por cobertura legacy, sin uso actual confirmado en `jds-carwash-front`

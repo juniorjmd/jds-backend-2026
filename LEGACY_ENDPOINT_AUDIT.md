@@ -135,21 +135,24 @@ Eso incluye acciones de:
 
 #### DatosIniciales
 
-- estado: con accion legacy registrada
-- accion visible: `GET_SUCURSAL_PRINCIPAL_DATA`
+- estado: migrado y alineado para consumo actual del front
+- acciones visibles:
+  - `GET_SUCURSAL_PRINCIPAL_DATA`
+  - `52444d9072f7ec12a26cb2879ebb4ab0bf5aa553`
+  - `52444d9072f7ec12aJEE8FFJJKVNASDHQWFLKA`
+  - `23929870008e23007350be74a708ab3a806dce13`
+  - `8e9ae038c37d3b59fc1eed456c77aefb5eadffea`
+  - `99c505a66a9d8a984059baf1b99bb9e6456ae4bb`
+- archivos frontend detectados:
+  - `src/app/services/DatosIniciales.services.ts`
+  - `src/app/modules/login/pages/login/login.component.ts`
+  - `src/app/modules/login/pages/forgotPassWord/forgotPassWord.component.ts`
+- nota detallada:
+  - `pr-features/08-datosiniciales-legacy-routing/04-BACK-FRONT-ALIGNMENT.md`
 - validacion de cobertura legacy:
-  - parcial
-  - cubierto:
-    - `GET_SUCURSAL_PRINCIPAL_DATA`
-  - faltantes visibles en `datosiniciales/index.php`:
-    - `52444d9072f7ec12a26cb2879ebb4ab0bf5aa553`
-    - `52444d9072f7ec12aJEE8FFJJKVNASDHQWFLKA`
-    - `23929870008e23007350be74a708ab3a806dce13`
-    - `8e9ae038c37d3b59fc1eed456c77aefb5eadffea`
-    - `99c505a66a9d8a984059baf1b99bb9e6456ae4bb`
+  - completo por acciones visibles del modulo `datosiniciales/index.php`
 - pendiente:
-  - alinear respuesta estandar en backend
-  - decidir si esas acciones realmente pertenecen a `datosiniciales` o a otro dominio funcional actual
+  - confirmar destino funcional final de las acciones legacy sin uso actual confirmado en frontend
 
 #### Vehiculos
 

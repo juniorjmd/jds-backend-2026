@@ -152,7 +152,7 @@ final class Router
             DocumentosController::class => $this->createDocumentosController($request),
             VentasController::class => $this->createVentasController($request),
             PersonasController::class => $this->createPersonasController($request),
-            DatosInicialesController::class => $this->createDatosInicialesController(),
+            DatosInicialesController::class => $this->createDatosInicialesController($request),
             VehiculosController::class => $this->createVehiculosController($request),
             default => throw new \Exception("No factory for {$class}"),
         };
@@ -190,7 +190,7 @@ final class Router
             DocumentosController::class => $this->createDocumentosController($request),
             VentasController::class => $this->createVentasController($request),
             PersonasController::class => $this->createPersonasController($request),
-            DatosInicialesController::class => $this->createDatosInicialesController(),
+            DatosInicialesController::class => $this->createDatosInicialesController($request),
             VehiculosController::class => $this->createVehiculosController($request),
             default => new $controllerClass(),
         };
@@ -220,11 +220,11 @@ final class Router
         return new PersonasController($request, $service);
     }
 
-    private function createDatosInicialesController(): DatosInicialesController
+    private function createDatosInicialesController(Request $request): DatosInicialesController
     {
         $service = new DatosInicialesService();
 
-        return new DatosInicialesController($service);
+        return new DatosInicialesController($request, $service);
     }
 
     private function createVehiculosController(Request $request): VehiculosController

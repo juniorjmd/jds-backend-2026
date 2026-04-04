@@ -1,18 +1,20 @@
 # Feature-08: DatosIniciales Module Legacy Routing - ACCEPTANCE CRITERIA
 
-## Criterios Funcionales
-- `GET_SUCURSAL_PRINCIPAL_DATA` queda registrada en `Routes::map()`.
-- `DatosInicialesController` expone `getPrincipalBranchData()`.
-- El servicio falla de forma explícita si no existe sucursal principal configurada.
+## Criterios funcionales
 
-## Criterios de No-Regresión
-- No se alteran los módulos ya migrados.
-- La respuesta mantiene compatibilidad con el frontend actual que espera un arreglo plano.
+- las seis acciones visibles del legacy quedan registradas en `Routes::map()`
+- `DatosInicialesController` expone handlers para cada accion visible
+- `GET_SUCURSAL_PRINCIPAL_DATA` responde ramas en `data.branches`
+- las acciones de cambio de contraseña validan confirmacion
+- la asignacion de preguntas valida `componente`, `formulario` y `preguntas`
 
-## Tests
-- `tests/Unit/DatosInicialesParametersTest.php`
-- `tests/Unit/DatosInicialesServiceTest.php`
+## Criterios de no regresion
 
-## Condición de Completitud
-- La acción usada por el frontend queda migrada.
-- Las acciones restantes del módulo quedan documentadas como no migradas.
+- el modulo responde con envelope estandar `ok/data/error`
+- la suite backend completa sigue pasando
+
+## Validacion ejecutada
+
+- `php tests/Unit/DatosInicialesParametersTest.php`
+- `php tests/Unit/DatosInicialesServiceTest.php`
+- `php tests/run-tests.php`

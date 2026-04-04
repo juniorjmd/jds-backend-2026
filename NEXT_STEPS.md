@@ -15,7 +15,7 @@ Conclusiones:
 
 - `personas` y `vehiculos` se ven completos por las acciones visibles en sus entrypoints legacy
 - `auth` y `admin` ya quedaron cerrados contra la cobertura legacy visible revisada
-- `carwash`, `ventas`, `datosiniciales`, `inventario` y `documentos` siguen parciales
+- `carwash`, `ventas`, `inventario` y `documentos` siguen parciales
 - por tanto no se debe asumir que un modulo "ya esta alineado" solo porque tenga consumers frontend adaptados
 
 ## Criterio actualizado de migracion
@@ -51,7 +51,6 @@ Antes de abrir mas cobertura en modulos nuevos, cerrar los modulos ya existentes
 - `carwash`
 - `personas`
 - `ventas`
-- `datosiniciales`
 - `vehiculos`
 - `inventario`
 - `documentos`
@@ -122,7 +121,6 @@ Focos visibles en esta revision:
 
 - `carwash` ya tiene contrato estandar alineado con frontend pero sigue con logica simulada
 - `ventas` sigue parcial frente al legacy visible en `ventas/index.php`
-- `datosiniciales` sigue parcial frente al legacy visible en `datosiniciales/index.php`
 - `inventario` sigue parcial y ademas con contrato backend aun no estandarizado
 - `documentos` todavia no tiene mapa legacy real en `config/documentos-actions.php`
 - hay acciones genericas de base de datos y acciones Odoo/reportes sin mapear en backend nuevo
@@ -132,13 +130,12 @@ Focos visibles en esta revision:
 ## Secuencia recomendada para la siguiente pasada
 
 1. Revalidar cobertura legacy real de cada modulo ya revisado
-2. Completar faltantes de `datosiniciales`
-3. Completar faltantes de `inventario`
-4. Estandarizar respuestas backend del modulo que se cierre
-5. Adaptar frontend del modulo cerrado
-6. Despues entrar a `documentos`
-7. Solo despues de cerrar modulos actuales, revisar acciones genericas y modulos legacy sin reflejo directo
-8. Ejecutar:
+2. Completar faltantes de `inventario`
+3. Estandarizar respuestas backend del modulo que se cierre
+4. Adaptar frontend del modulo cerrado
+5. Despues entrar a `documentos`
+6. Solo despues de cerrar modulos actuales, revisar acciones genericas y modulos legacy sin reflejo directo
+7. Ejecutar:
    - `php tests/Unit/DocumentosServiceTest.php`
    - `php tests/Unit/DocumentosParametersTest.php`
    - `php tests/run-tests.php`
