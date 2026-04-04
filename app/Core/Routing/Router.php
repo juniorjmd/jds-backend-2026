@@ -5,11 +5,6 @@ namespace App\Core\Routing;
 
 use App\Core\Http\Request;
 use App\Core\Http\Response;
-<<<<<<< HEAD
-use App\Modules\Auth\AuthContext;
-use App\Modules\Documentos\DocumentosController;
-use App\Modules\Documentos\Services\DocumentosService;
-=======
 use App\Modules\Admin\AdminController;
 use App\Modules\Admin\Services\AdminService;
 use App\Modules\Auth\AuthContext;
@@ -19,7 +14,8 @@ use App\Modules\Documentos\DocumentosController;
 use App\Modules\Documentos\Services\DocumentosService;
 use App\Modules\Inventario\InventarioController;
 use App\Modules\Inventario\Services\InventarioService;
->>>>>>> origin/main
+use App\Modules\Ventas\VentasController;
+use App\Modules\Ventas\Services\VentasService;
 
 final class Router
 {
@@ -29,36 +25,15 @@ final class Router
 
     public function dispatch(Request $request): mixed
     {
-<<<<<<< HEAD
         $path = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
-=======
-        $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
->>>>>>> origin/main
 
         if (!$path) {
             Response::fail('INVALID_ROUTE', 'Ruta inválida', 404);
         }
 
-<<<<<<< HEAD
         $path = strtolower($path);
         $segments = explode('/', trim($path, '/'));
         $apiIndex = array_search('api', $segments, true);
-
-=======
-        /*
-         * |--------------------------------------------------------------------------
-         * | Remover base path del proyecto
-         * |--------------------------------------------------------------------------
-         */
-
-        $path = strtolower($path);
-
-        $segments = explode('/', trim($path, '/'));
-        
-        $apiIndex = array_search('api', $segments);
-
-        // Si no hay /api, ir directo a Legacy Action Router
->>>>>>> origin/main
         if ($apiIndex === false) {
             return $this->dispatchLegacyAction($request);
         }
@@ -133,15 +108,6 @@ final class Router
 
     private function dispatchLegacyAction(Request $request): mixed
     {
-<<<<<<< HEAD
-=======
-        /*
-        |--------------------------------------------------------------------------
-        | Legacy Action Router
-        |--------------------------------------------------------------------------
-        */
-
->>>>>>> origin/main
         $action = $request->action();
 
         if (!$action) {
@@ -178,30 +144,13 @@ final class Router
             CarwashController::class => $this->createCarwashController($request),
             InventarioController::class => $this->createInventarioController($request),
             DocumentosController::class => $this->createDocumentosController($request),
+            VentasController::class => $this->createVentasController($request),
             default => throw new \Exception("No factory for {$class}"),
         };
 
         return $instance->$method();
     }
 
-<<<<<<< HEAD
-    private function createController(string $controllerClass, Request $request): object
-    {
-        return match ($controllerClass) {
-            DocumentosController::class => $this->createDocumentosController($request),
-            default => new $controllerClass(),
-        };
-    }
-
-    private function createDocumentosController(Request $request): DocumentosController
-    {
-        $authContext = new AuthContext();
-        $service = new DocumentosService($request, $authContext);
-
-        return new DocumentosController($request, $service);
-    }
-}
-=======
     private function createAdminController(Request $request): AdminController
     {
         $authContext = new AuthContext();
@@ -230,6 +179,7 @@ final class Router
             CarwashController::class => $this->createCarwashController($request),
             InventarioController::class => $this->createInventarioController($request),
             DocumentosController::class => $this->createDocumentosController($request),
+            VentasController::class => $this->createVentasController($request),
             default => new $controllerClass(),
         };
     }
@@ -241,5 +191,12 @@ final class Router
 
         return new DocumentosController($request, $service);
     }
+
+    private function createVentasController(Request $request): VentasController
+    {
+        $authContext = new AuthContext();
+        $service = new VentasService($request, $authContext);
+
+        return new VentasController($request, $service);
+    }
 }
->>>>>>> origin/main

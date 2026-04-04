@@ -4,14 +4,13 @@ declare(strict_types=1);
 namespace App\Modules\Documentos\Services;
 
 use App\Core\Http\Request;
-use App\Modules\Auth\AuthContext;
 
 class DocumentosService
 {
     private Request $request;
-    private AuthContext $authContext;
+    private $authContext;
 
-    public function __construct(Request $request, AuthContext $authContext)
+    public function __construct(Request $request, $authContext)
     {
         $this->request = $request;
         $this->authContext = $authContext;

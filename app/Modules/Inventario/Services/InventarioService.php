@@ -4,14 +4,13 @@ declare(strict_types=1);
 namespace App\Modules\Inventario\Services;
 
 use App\Core\Http\Request;
-use App\Modules\Auth\AuthContext;
 
 class InventarioService
 {
     private Request $request;
     private $authContext; // Flexible, puede ser cualquier objeto con método user()
 
-    public function __construct(Request $request, AuthContext $authContext)
+    public function __construct(Request $request, $authContext)
     {
         $this->request = $request;
         $this->authContext = $authContext;

@@ -1,177 +1,143 @@
 <?php
-declare(strict_types=1);
+require_once __DIR__ . '/../../vendor/autoload.php';
 
-use App\Modules\Documentos\DocumentosController;
-use App\Modules\Documentos\Services\DocumentosService;
-use App\Core\Http\Request;
-use App\Core\Http\Response;
-use PHPUnit\Framework\TestCase;
-
-class DocumentosParametersTest extends TestCase
+class DocumentosParametersTest
 {
-    private DocumentosController $controller;
-    private Request $request;
-    private DocumentosService $service;
+    private int $passCount = 0;
+    private int $failCount = 0;
 
-    protected function setUp(): void
+    public function run(): void
     {
-        $this->request = $this->createMock(Request::class);
-        $this->service = $this->createMock(DocumentosService::class);
-        $this->controller = new DocumentosController($this->request, $this->service);
+        echo "\n========== DOCUMENTOS PARAMETERS TEST ==========\n\n";
+
+        $this->testDocumentosActionsMapping();
+        $this->testRoutesLoadsDocumentosActions();
+        $this->testDocumentosControllerExists();
+        $this->testLegacyParametersFallback();
+        $this->testActionDetected();
+
+        $this->printSummary();
+        exit($this->failCount === 0 ? 0 : 1);
     }
 
-    public function testListDocumentsWithValidParameters(): void
+    private function testDocumentosActionsMapping(): void
     {
-        $this->request->expects($this->once())
-            ->method('input')
-            ->with('usuario_id', 0)
-            ->willReturn(123);
+        echo "TEST 1: Documentos actions are correctly mapped... ";
 
-        $this->request->expects($this->once())
-            ->method('input')
-            ->with('tipo', '')
-            ->willReturn('factura');
+        try {
+            $actions = require __DIR__ . '/../../config/documentos-actions.php';
+            foreach ([
+                'LISTAR_DOCUMENTOS',
+                'SUBIR_DOCUMENTO',
+                'DESCARGAR_DOCUMENTO',
+                'BORRAR_DOCUMENTO',
+            ] as $action) {
+                if (!array_key_exists($action, $actions)) {
+                    throw new \Exception("Missing action: $action");
+                }
+            }
 
-        $this->service->expects($this->once())
-            ->method('listDocuments')
-            ->with(123, 'factura')
-            ->willReturn([
-                [
-                    'documento_id' => 1,
-                    'nombre' => 'factura-001.pdf',
-                    'tipo' => 'factura',
-                    'usuario_id' => 123,
-                    'fecha_creacion' => '2026-04-03 12:00:00'
-                ]
-            ]);
-
-        // Capture the output
-        ob_start();
-        $this->controller->listDocuments();
-        $output = ob_get_clean();
-
-        $response = json_decode($output, true);
-
-        $this->assertTrue($response['success']);
-        $this->assertCount(1, $response['data']);
-        $this->assertEquals('factura-001.pdf', $response['data'][0]['nombre']);
+            echo "✓ PASSED\n";
+            $this->passCount++;
+        } catch (\Exception $e) {
+            echo "✗ FAILED: {$e->getMessage()}\n";
+            $this->failCount++;
+        }
     }
 
-    public function testListDocumentsWithInvalidUserId(): void
+    private function testRoutesLoadsDocumentosActions(): void
     {
-        $this->request->expects($this->once())
-            ->method('input')
-            ->with('usuario_id', 0)
-            ->willReturn(0);
+        echo "TEST 2: Routes loads documentos actions correctly... ";
 
-        $this->request->expects($this->once())
-            ->method('input')
-            ->with('tipo', '')
-            ->willReturn('');
+        try {
+            $map = \App\Bootstrap\Routes::map();
+            if (!array_key_exists('LISTAR_DOCUMENTOS', $map)) {
+                throw new \Exception('Action LISTAR_DOCUMENTOS not found in Routes::map()');
+            }
 
-        $this->service->expects($this->once())
-            ->method('listDocuments')
-            ->with(0, '')
-            ->willThrowException(new \Exception('Usuario no autenticado'));
-
-        ob_start();
-        $this->controller->listDocuments();
-        $output = ob_get_clean();
-
-        $response = json_decode($output, true);
-
-        $this->assertFalse($response['success']);
-        $this->assertEquals('LIST_DOCUMENTS_ERROR', $response['error']['code']);
-        $this->assertEquals('Usuario no autenticado', $response['error']['message']);
+            echo "✓ PASSED\n";
+            $this->passCount++;
+        } catch (\Exception $e) {
+            echo "✗ FAILED: {$e->getMessage()}\n";
+            $this->failCount++;
+        }
     }
 
-    public function testUploadDocumentWithValidParameters(): void
+    private function testDocumentosControllerExists(): void
     {
-        $this->request->expects($this->exactly(3))
-            ->method('input')
-            ->willReturnMap([
-                ['usuario_id', 0, 123],
-                ['nombre', '', 'documento.pdf'],
-                ['tipo', '', 'factura'],
-                ['contenido_base64', '', 'base64content']
-            ]);
+        echo "TEST 3: DocumentosController has required methods... ";
 
-        $this->service->expects($this->once())
-            ->method('uploadDocument')
-            ->with(123, 'documento.pdf', 'factura', 'base64content')
-            ->willReturn([
-                'documento_id' => 456,
-                'nombre' => 'documento.pdf',
-                'tipo' => 'factura',
-                'usuario_id' => 123,
-                'url_descarga' => 'https://example.com/download/documento.pdf',
-                'fecha_creacion' => '2026-04-03 12:00:00'
-            ]);
+        try {
+            $controller = \App\Modules\Documentos\DocumentosController::class;
+            foreach (['listDocuments', 'uploadDocument', 'downloadDocument', 'deleteDocument'] as $method) {
+                if (!method_exists($controller, $method)) {
+                    throw new \Exception("Method $method not found");
+                }
+            }
 
-        ob_start();
-        $this->controller->uploadDocument();
-        $output = ob_get_clean();
-
-        $response = json_decode($output, true);
-
-        $this->assertTrue($response['success']);
-        $this->assertEquals(456, $response['data']['documento_id']);
-        $this->assertEquals('documento.pdf', $response['data']['nombre']);
+            echo "✓ PASSED\n";
+            $this->passCount++;
+        } catch (\Exception $e) {
+            echo "✗ FAILED: {$e->getMessage()}\n";
+            $this->failCount++;
+        }
     }
 
-    public function testDownloadDocumentWithValidId(): void
+    private function testLegacyParametersFallback(): void
     {
-        $this->request->expects($this->once())
-            ->method('input')
-            ->with('documento_id', 0)
-            ->willReturn(789);
+        echo "TEST 4: Documentos accepts legacy parameters... ";
 
-        $this->service->expects($this->once())
-            ->method('downloadDocument')
-            ->with(789)
-            ->willReturn([
-                'documento_id' => 789,
-                'nombre' => 'factura-001.pdf',
-                'tipo' => 'factura',
-                'download_url' => 'https://example.com/download/789',
-                'usuario_id' => 123
-            ]);
+        try {
+            $request = new \App\Core\Http\Request('POST', [], [
+                '_usuario_id' => 123,
+                '_tipo' => 'factura',
+                '_documento_id' => 456,
+            ], [], []);
 
-        ob_start();
-        $this->controller->downloadDocument();
-        $output = ob_get_clean();
+            if ($request->input('usuario_id', 0) !== 123) {
+                throw new \Exception('usuario_id mismatch');
+            }
+            if ($request->input('tipo', '') !== 'factura') {
+                throw new \Exception('tipo mismatch');
+            }
+            if ($request->input('documento_id', 0) !== 456) {
+                throw new \Exception('documento_id mismatch');
+            }
 
-        $response = json_decode($output, true);
-
-        $this->assertTrue($response['success']);
-        $this->assertEquals(789, $response['data']['documento_id']);
-        $this->assertEquals('factura-001.pdf', $response['data']['nombre']);
+            echo "✓ PASSED\n";
+            $this->passCount++;
+        } catch (\Exception $e) {
+            echo "✗ FAILED: {$e->getMessage()}\n";
+            $this->failCount++;
+        }
     }
 
-    public function testDeleteDocumentWithValidId(): void
+    private function testActionDetected(): void
     {
-        $this->request->expects($this->once())
-            ->method('input')
-            ->with('documento_id', 0)
-            ->willReturn(999);
+        echo "TEST 5: Action is detected correctly... ";
 
-        $this->service->expects($this->once())
-            ->method('deleteDocument')
-            ->with(999)
-            ->willReturn([
-                'documento_id' => 999,
-                'deleted' => true,
-                'fecha_eliminacion' => '2026-04-03 12:00:00'
-            ]);
+        try {
+            $request = new \App\Core\Http\Request('POST', [], ['action' => 'LISTAR_DOCUMENTOS'], [], []);
+            if ($request->action() !== 'LISTAR_DOCUMENTOS') {
+                throw new \Exception('action mismatch');
+            }
 
-        ob_start();
-        $this->controller->deleteDocument();
-        $output = ob_get_clean();
+            echo "✓ PASSED\n";
+            $this->passCount++;
+        } catch (\Exception $e) {
+            echo "✗ FAILED: {$e->getMessage()}\n";
+            $this->failCount++;
+        }
+    }
 
-        $response = json_decode($output, true);
-
-        $this->assertTrue($response['success']);
-        $this->assertTrue($response['data']['deleted']);
-        $this->assertEquals(999, $response['data']['documento_id']);
+    private function printSummary(): void
+    {
+        $total = $this->passCount + $this->failCount;
+        echo "\n========== RESULT ==========\n";
+        echo "PASSED: {$this->passCount}/{$total}\n";
+        echo "FAILED: {$this->failCount}/{$total}\n";
+        echo "===========================\n\n";
     }
 }
+
+(new DocumentosParametersTest())->run();

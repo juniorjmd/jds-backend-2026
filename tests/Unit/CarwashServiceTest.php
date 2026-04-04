@@ -32,6 +32,13 @@ class CarwashServiceTest
             {
                 return $this->userData;
             }
+
+            public function resolve($request): array
+            {
+                return $this->userData === null
+                    ? ['success' => false]
+                    : ['success' => true, 'compact_user' => ['nombre' => $this->userData['USUARIO'] ?? 'admin']];
+            }
         };
     }
 

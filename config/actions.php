@@ -1,3 +1,5 @@
+<?php
+
 use App\Core\Http\Request;
 use App\Modules\Auth\AuthController;
 
