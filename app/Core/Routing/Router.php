@@ -5,9 +5,21 @@ namespace App\Core\Routing;
 
 use App\Core\Http\Request;
 use App\Core\Http\Response;
+<<<<<<< HEAD
 use App\Modules\Auth\AuthContext;
 use App\Modules\Documentos\DocumentosController;
 use App\Modules\Documentos\Services\DocumentosService;
+=======
+use App\Modules\Admin\AdminController;
+use App\Modules\Admin\Services\AdminService;
+use App\Modules\Auth\AuthContext;
+use App\Modules\Carwash\CarwashController;
+use App\Modules\Carwash\Services\CarwashService;
+use App\Modules\Documentos\DocumentosController;
+use App\Modules\Documentos\Services\DocumentosService;
+use App\Modules\Inventario\InventarioController;
+use App\Modules\Inventario\Services\InventarioService;
+>>>>>>> origin/main
 
 final class Router
 {
@@ -17,16 +29,36 @@ final class Router
 
     public function dispatch(Request $request): mixed
     {
+<<<<<<< HEAD
         $path = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
+=======
+        $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+>>>>>>> origin/main
 
         if (!$path) {
             Response::fail('INVALID_ROUTE', 'Ruta inválida', 404);
         }
 
+<<<<<<< HEAD
         $path = strtolower($path);
         $segments = explode('/', trim($path, '/'));
         $apiIndex = array_search('api', $segments, true);
 
+=======
+        /*
+         * |--------------------------------------------------------------------------
+         * | Remover base path del proyecto
+         * |--------------------------------------------------------------------------
+         */
+
+        $path = strtolower($path);
+
+        $segments = explode('/', trim($path, '/'));
+        
+        $apiIndex = array_search('api', $segments);
+
+        // Si no hay /api, ir directo a Legacy Action Router
+>>>>>>> origin/main
         if ($apiIndex === false) {
             return $this->dispatchLegacyAction($request);
         }
@@ -44,7 +76,14 @@ final class Router
         $module = $segments[1] ?? null;
         $method = $segments[2] ?? null;
 
+        /*
+        |--------------------------------------------------------------------------
+        | Endpoint Router
+        |--------------------------------------------------------------------------
+        */
+
         if ($module && $method) {
+
             $controllerClass = "App\\Modules\\" . ucfirst($module) . "\\" . ucfirst($module) . "Controller";
 
             if (!class_exists($controllerClass)) {
@@ -68,10 +107,18 @@ final class Router
             return $controller->$method($request);
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Module root (ej: /api/health)
+        |--------------------------------------------------------------------------
+        */
+
         if ($module && !$method) {
+
             $controllerClass = "App\\Modules\\" . ucfirst($module) . "\\" . ucfirst($module) . "Controller";
 
             if (class_exists($controllerClass)) {
+
                 $controller = $this->createController($controllerClass, $request);
 
                 if (method_exists($controller, 'index')) {
@@ -80,11 +127,21 @@ final class Router
             }
         }
 
+        // Si llega aquí, ir a legacy action router
         return $this->dispatchLegacyAction($request);
     }
 
     private function dispatchLegacyAction(Request $request): mixed
     {
+<<<<<<< HEAD
+=======
+        /*
+        |--------------------------------------------------------------------------
+        | Legacy Action Router
+        |--------------------------------------------------------------------------
+        */
+
+>>>>>>> origin/main
         $action = $request->action();
 
         if (!$action) {
@@ -117,13 +174,17 @@ final class Router
         [$class, $method] = $handler;
 
         $instance = match ($class) {
+            AdminController::class => $this->createAdminController($request),
+            CarwashController::class => $this->createCarwashController($request),
+            InventarioController::class => $this->createInventarioController($request),
             DocumentosController::class => $this->createDocumentosController($request),
-            default => throw new \Exception("No factory para {$class}"),
+            default => throw new \Exception("No factory for {$class}"),
         };
 
         return $instance->$method();
     }
 
+<<<<<<< HEAD
     private function createController(string $controllerClass, Request $request): object
     {
         return match ($controllerClass) {
@@ -140,3 +201,45 @@ final class Router
         return new DocumentosController($request, $service);
     }
 }
+=======
+    private function createAdminController(Request $request): AdminController
+    {
+        $authContext = new AuthContext();
+        $service = new AdminService($request, $authContext);
+        return new AdminController($request, $service);
+    }
+
+    private function createCarwashController(Request $request): CarwashController
+    {
+        $authContext = new AuthContext();
+        $service = new CarwashService($request, $authContext);
+        return new CarwashController($request, $service);
+    }
+
+    private function createInventarioController(Request $request): InventarioController
+    {
+        $authContext = new AuthContext();
+        $service = new InventarioService($request, $authContext);
+        return new InventarioController($request, $service);
+    }
+
+    private function createController(string $controllerClass, Request $request): object
+    {
+        return match ($controllerClass) {
+            AdminController::class => $this->createAdminController($request),
+            CarwashController::class => $this->createCarwashController($request),
+            InventarioController::class => $this->createInventarioController($request),
+            DocumentosController::class => $this->createDocumentosController($request),
+            default => new $controllerClass(),
+        };
+    }
+
+    private function createDocumentosController(Request $request): DocumentosController
+    {
+        $authContext = new AuthContext();
+        $service = new DocumentosService($request, $authContext);
+
+        return new DocumentosController($request, $service);
+    }
+}
+>>>>>>> origin/main
