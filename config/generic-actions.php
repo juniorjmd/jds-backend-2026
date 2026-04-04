@@ -39,4 +39,19 @@ return [
     'DATABASE_GENERIC_CONTRUCT_PROCEDURE' => function (Request $request) use ($buildController) {
         $buildController($request)->procedure();
     },
+    'DATABASE_GENERIC_CONTRUCT_INSERT_SELECT' => function (Request $request) use ($buildController) {
+        $buildController($request)->insertSelect();
+    },
+    'INSERT_PERFIL_USUARIO' => function (Request $request) use ($buildController) {
+        $buildController($request)->assignUserProfile();
+    },
+    'mnbvcxzxcxcxasdfewq15616' => function (Request $request) use ($buildController) {
+        $buildController($request)->boxesByUser();
+    },
+    'qwer12356yhn7ujm8ik' => function (Request $request) use ($buildController) {
+        $buildController($request)->assignBoxesToUser();
+    },
+    'BUSCAR_STOCK_LOCATION' => function (Request $request) use ($buildController) {
+        $buildController($request)->searchStockLocations();
+    },
 ];

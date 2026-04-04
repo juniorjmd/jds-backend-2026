@@ -73,4 +73,49 @@ final class LegacyCrudController
             Response::fail('DATABASE_GENERIC_CONTRUCT_PROCEDURE_ERROR', $e->getMessage(), 400);
         }
     }
+
+    public function insertSelect(): void
+    {
+        try {
+            Response::ok($this->service->insertSelect());
+        } catch (\Throwable $e) {
+            Response::fail('DATABASE_GENERIC_CONTRUCT_INSERT_SELECT_ERROR', $e->getMessage(), 400);
+        }
+    }
+
+    public function assignUserProfile(): void
+    {
+        try {
+            Response::ok($this->service->assignUserProfile());
+        } catch (\Throwable $e) {
+            Response::fail('INSERT_PERFIL_USUARIO_ERROR', $e->getMessage(), 400);
+        }
+    }
+
+    public function boxesByUser(): void
+    {
+        try {
+            Response::ok($this->service->boxesByUser());
+        } catch (\Throwable $e) {
+            Response::fail('GET_CAJAS_POR_USUARIO_ERROR', $e->getMessage(), 400);
+        }
+    }
+
+    public function assignBoxesToUser(): void
+    {
+        try {
+            Response::ok($this->service->assignBoxesToUser());
+        } catch (\Throwable $e) {
+            Response::fail('SET_CAJAS_POR_USUARIO_ERROR', $e->getMessage(), 400);
+        }
+    }
+
+    public function searchStockLocations(): void
+    {
+        try {
+            Response::ok($this->service->searchStockLocations());
+        } catch (\Throwable $e) {
+            Response::fail('BUSCAR_STOCK_LOCATION_ERROR', $e->getMessage(), 400);
+        }
+    }
 }

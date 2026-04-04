@@ -105,6 +105,159 @@ final class LegacyCrudService
         return $this->formatRows($rows);
     }
 
+    public function insertSelect(): array
+    {
+        $result = $this->repository->insertSelect(
+            table: $this->table(),
+            tableSelect: (string) $this->request->input('_tablaSelect', ''),
+            data: $this->normalizeInsertSelectData($this->request->input('_arraydatos', [])),
+            deleteBefore: $this->normalizeDeleteBefore($this->request->input('_deleteBefore', [])),
+            where: $this->normalizeWhere($this->request->input('_where', []))
+        );
+
+        return [
+            'message' => 'Insercion realizada correctamente',
+            'affected' => (int) ($result['affected'] ?? 0),
+            'deleted' => (int) ($result['deleted'] ?? 0),
+        ];
+    }
+
+    public function assignUserProfile(): array
+    {
+        $payload = $this->request->input('_parametro', []);
+        if (!is_array($payload)) {
+            throw new RuntimeException('Debe enviar _parametro');
+        }
+
+        $profileId = (int) ($payload['perfil'] ?? 0);
+        $userId = (int) ($payload['usuario'] ?? 0);
+
+        if ($profileId <= 0 || $userId <= 0) {
+            throw new RuntimeException('Debe enviar perfil y usuario válidos');
+        }
+
+        $rows = $this->repository->assignUserProfile($profileId, $userId);
+        $result = $rows[0] ?? [];
+        $code = (int) ($result['_result'] ?? 0);
+
+        if ($code !== 100) {
+            throw new RuntimeException((string) ($result['msg'] ?? 'No fue posible asignar el perfil al usuario'));
+        }
+
+        return [
+            'message' => (string) ($result['msg'] ?? 'Perfil asignado correctamente'),
+            'result' => $result,
+        ];
+    }
+
+    public function boxesByUser(): array
+    {
+        $userId = (int) $this->request->input('_usuario', 0);
+        if ($userId <= 0) {
+            throw new RuntimeException('Debe enviar _usuario');
+        }
+
+        $rows = $this->repository->listBoxesByUser($userId);
+        $boxes = array_map(static function (array $row): array {
+            $row['asignada'] = (bool) ($row['asignada'] ?? false);
+            return $row;
+        }, $rows);
+
+        return [
+            'boxes' => $boxes,
+            'count' => count($boxes),
+        ];
+    }
+
+    public function assignBoxesToUser(): array
+    {
+        $userId = (int) $this->request->input('_idUsuario', 0);
+        $boxIds = $this->normalizeIntegerArray($this->request->input('_cajas', []));
+
+        if ($userId <= 0) {
+            throw new RuntimeException('Debe enviar _idUsuario');
+        }
+
+        $result = $this->repository->replaceUserBoxes($userId, $boxIds);
+
+        return [
+            'message' => 'Cajas asignadas correctamente',
+            'assignedBoxIds' => $boxIds,
+            'inserted' => (int) ($result['inserted'] ?? 0),
+            'deleted' => (int) ($result['deleted'] ?? 0),
+        ];
+    }
+
+    public function searchStockLocations(): array
+    {
+        $warehouses = $this->decodeWarehouseObjects($this->repository->activeWarehouses());
+        $establishments = $this->repository->establishmentsWarehouseAssignments();
+
+        if ((bool) $this->request->input('_principal', false) === true) {
+            $locations = $this->mapAssignments(
+                warehouses: $warehouses,
+                establishments: $establishments,
+                column: 'idAuxiliar',
+                type: 'PRINCIPAL'
+            );
+
+            return ['locations' => $locations, 'count' => count($locations)];
+        }
+
+        if ((bool) $this->request->input('_fisicas', false) === true && $this->request->input('_id_principal') === null) {
+            $locations = $this->mapAssignments(
+                warehouses: $warehouses,
+                establishments: $establishments,
+                column: 'idBodegaStock',
+                type: 'FISICA'
+            );
+
+            return ['locations' => $locations, 'count' => count($locations)];
+        }
+
+        if ((bool) $this->request->input('_virtual', false) === true) {
+            $locations = $this->mapAssignments(
+                warehouses: $warehouses,
+                establishments: $establishments,
+                column: 'idBodegaVitual',
+                type: 'VIRTUAL'
+            );
+
+            return ['locations' => $locations, 'count' => count($locations)];
+        }
+
+        if ($this->request->input('_id_principal') !== null) {
+            $principalId = (int) $this->request->input('_id_principal', 0);
+            if ($principalId <= 0) {
+                throw new RuntimeException('Debe enviar _id_principal');
+            }
+
+            $locationIds = [];
+            foreach ($establishments as $establishment) {
+                if ((int) ($establishment['idAuxiliar'] ?? 0) !== $principalId) {
+                    continue;
+                }
+
+                if ((bool) $this->request->input('_existencia', false) === true) {
+                    $locationIds[] = (int) ($establishment['estockExistencia'] ?? 0);
+                } else {
+                    $locationIds[] = (int) ($establishment['idBodegaStock'] ?? 0);
+                    $locationIds[] = (int) ($establishment['idBodegaVitual'] ?? 0);
+                }
+            }
+
+            $locationIds = array_values(array_unique(array_filter($locationIds)));
+            $locations = array_values(array_filter($warehouses, static fn (array $warehouse) => in_array((int) ($warehouse['id'] ?? 0), $locationIds, true)));
+
+            return ['locations' => $locations, 'count' => count($locations)];
+        }
+
+        return [
+            'locations' => $warehouses,
+            'count' => count($warehouses),
+        ];
+    }
+
     private function formatRows(array $rows): array
     {
         $objectColumns = $this->normalizeStringArray($this->request->input('_obj', []));
@@ -233,5 +386,91 @@ final class LegacyCrudService
             fn (mixed $value) => is_string($value) ? $value : '',
             $payload
         )));
+    }
+
+    private function normalizeDeleteBefore(mixed $payload): array
+    {
+        return is_array($payload) ? $payload : [];
+    }
+
+    private function normalizeIntegerArray(mixed $payload): array
+    {
+        if (!is_array($payload)) {
+            return [];
+        }
+
+        return array_values(array_filter(array_map(
+            static fn (mixed $value) => (int) $value,
+            $payload
+        )));
+    }
+
+    private function normalizeInsertSelectData(mixed $payload): array
+    {
+        if (!is_array($payload)) {
+            return [];
+        }
+
+        $context = null;
+        $normalized = [];
+
+        foreach ($payload as $key => $value) {
+            if (!is_string($key) || $key === '') {
+                continue;
+            }
+
+            if (is_array($value) && count($value) === 2 && ($value[1] ?? null) === 'tabla') {
+                $normalized[$key] = [
+                    'mode' => 'column',
+                    'value' => (string) ($value[0] ?? ''),
+                ];
+                continue;
+            }
+
+            $normalized[$key] = [
+                'mode' => 'value',
+                'value' => $this->normalizeValue($value, $context),
+            ];
+        }
+
+        return $normalized;
+    }
+
+    private function decodeWarehouseObjects(array $rows): array
+    {
+        return array_map(static function (array $row): array {
+            if (isset($row['obj']) && is_string($row['obj'])) {
+                $decoded = json_decode($row['obj'], true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    $row = array_merge($row, $decoded);
+                }
+            }
+
+            return $row;
+        }, $rows);
+    }
+
+    private function mapAssignments(array $warehouses, array $establishments, string $column, string $type): array
+    {
+        return array_map(static function (array $warehouse) use ($establishments, $column, $type): array {
+            $warehouseId = (int) ($warehouse['id'] ?? 0);
+            $warehouse['asignado'] = 'NO';
+            $warehouse['idEsta'] = 0;
+            $warehouse['nombreEsta'] = '';
+            $warehouse['tipLocacion'] = $type;
+
+            foreach ($establishments as $establishment) {
+                if ((int) ($establishment[$column] ?? 0) !== $warehouseId) {
+                    continue;
+                }
+
+                $warehouse['asignado'] = 'SI';
+                $warehouse['idEsta'] = (int) ($establishment['id'] ?? 0);
+                $warehouse['nombreEsta'] = (string) ($establishment['nombre'] ?? '');
+                break;
+            }
+
+            return $warehouse;
+        }, $warehouses);
     }
 }

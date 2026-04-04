@@ -150,6 +150,167 @@ final class LegacyCrudRepository extends BaseRepository
         return $rows;
     }
 
+    public function insertSelect(
+        string $table,
+        string $tableSelect,
+        array $data,
+        array $deleteBefore = [],
+        array $where = []
+    ): array {
+        if ($data === []) {
+            throw new RuntimeException('No se enviaron datos para insertar');
+        }
+
+        if ($tableSelect === '') {
+            throw new RuntimeException('Debe enviar _tablaSelect');
+        }
+
+        $this->beginTransaction();
+
+        try {
+            $deleted = 0;
+            if ($deleteBefore !== []) {
+                [$deleteSql, $deleteParams] = $this->buildTupleWhereClause($deleteBefore, 'd_');
+                $stmt = $this->prepare(sprintf(
+                    'DELETE FROM %s WHERE %s',
+                    $this->quoteIdentifier($table),
+                    $deleteSql
+                ));
+                $stmt->execute($deleteParams);
+                $deleted = $stmt->rowCount();
+            }
+
+            $columns = [];
+            $selectParts = [];
+            $params = [];
+            $index = 0;
+
+            foreach ($data as $column => $value) {
+                if ($value === null) {
+                    continue;
+                }
+
+                $columns[] = $this->quoteIdentifier((string) $column);
+
+                if (is_array($value) && (($value['mode'] ?? null) === 'column')) {
+                    $selectParts[] = $this->quoteIdentifier((string) ($value['value'] ?? ''));
+                    continue;
+                }
+
+                $param = ':is_' . $index++;
+                $selectParts[] = $param;
+                $params[$param] = is_array($value) ? ($value['value'] ?? null) : $value;
+            }
+
+            if ($columns === [] || $selectParts === []) {
+                throw new RuntimeException('No se enviaron columnas válidas para INSERT SELECT');
+            }
+
+            $sql = sprintf(
+                'INSERT INTO %s (%s) SELECT %s FROM %s',
+                $this->quoteIdentifier($table),
+                implode(', ', $columns),
+                implode(', ', $selectParts),
+                $this->quoteIdentifier($tableSelect)
+            );
+
+            [$whereSql, $whereParams] = $this->buildWhereClause($where, 'isw_');
+            if ($whereSql !== '') {
+                $sql .= ' WHERE ' . $whereSql;
+                $params = array_merge($params, $whereParams);
+            }
+
+            $stmt = $this->prepare($sql);
+            $stmt->execute($params);
+
+            $this->commit();
+
+            return [
+                'affected' => $stmt->rowCount(),
+                'deleted' => $deleted,
+            ];
+        } catch (\Throwable $e) {
+            if ($this->db->inTransaction()) {
+                $this->rollBack();
+            }
+
+            throw $e;
+        }
+    }
+
+    public function assignUserProfile(int $profileId, int $userId): array
+    {
+        return $this->executeProcedure('setPerfilAUsuario', [$profileId, $userId]);
+    }
+
+    public function listBoxesByUser(int $userId): array
+    {
+        $sql = <<<SQL
+            SELECT
+                c.*,
+                CASE WHEN r.id IS NULL THEN 0 ELSE 1 END AS asignada
+            FROM cajas c
+            LEFT JOIN rel_usuario_cajas r
+                ON r.idCaja = c.id
+               AND r.idUsuario = :userId
+            ORDER BY c.nombre ASC
+        SQL;
+
+        return $this->fetchAll($sql, [':userId' => $userId]);
+    }
+
+    public function replaceUserBoxes(int $userId, array $boxIds): array
+    {
+        $this->beginTransaction();
+
+        try {
+            $delete = $this->prepare('DELETE FROM rel_usuario_cajas WHERE idUsuario = :userId');
+            $delete->execute([':userId' => $userId]);
+
+            $inserted = 0;
+            if ($boxIds !== []) {
+                $insert = $this->prepare(
+                    'INSERT INTO rel_usuario_cajas (idUsuario, idCaja) VALUES (:userId, :boxId)'
+                );
+
+                foreach ($boxIds as $boxId) {
+                    $insert->execute([
+                        ':userId' => $userId,
+                        ':boxId' => $boxId,
+                    ]);
+                    $inserted += $insert->rowCount();
+                }
+            }
+
+            $this->commit();
+
+            return [
+                'deleted' => $delete->rowCount(),
+                'inserted' => $inserted,
+            ];
+        } catch (\Throwable $e) {
+            if ($this->db->inTransaction()) {
+                $this->rollBack();
+            }
+
+            throw $e;
+        }
+    }
+
+    public function activeWarehouses(): array
+    {
+        return $this->fetchAll(
+            'SELECT id, nombre, descripcion, tipo, tipo_descripcion, obj FROM vw_inv_bodegas WHERE estado = 1 ORDER BY nombre ASC'
+        );
+    }
+
+    public function establishmentsWarehouseAssignments(): array
+    {
+        return $this->fetchAll(
+            'SELECT id, nombre, idAuxiliar, idBodegaStock, idBodegaVitual, estockExistencia FROM establecimiento WHERE estado = 1'
+        );
+    }
+
     private function quoteColumns(array $columns): array
     {
         if ($columns === []) {
@@ -252,6 +413,40 @@ final class LegacyCrudRepository extends BaseRepository
             $this->quoteIdentifier($checkColumn),
             $checkValue
         );
+    }
+
+    private function buildTupleWhereClause(array $where, string $prefix = 't_'): array
+    {
+        $parts = [];
+        $params = [];
+
+        foreach (array_values($where) as $index => $condition) {
+            if (!is_array($condition) || count($condition) < 3) {
+                continue;
+            }
+
+            $column = trim((string) ($condition[0] ?? ''));
+            $operator = strtoupper(trim((string) ($condition[1] ?? '=')));
+            $value = $condition[2] ?? null;
+
+            if ($column === '') {
+                continue;
+            }
+
+            if (!in_array($operator, ['=', '<>', '!=', '>', '>=', '<', '<='], true)) {
+                throw new RuntimeException("Operador no soportado: {$operator}");
+            }
+
+            $param = ':' . $prefix . $index;
+            $parts[] = $this->quoteIdentifier($column) . " {$operator} {$param}";
+            $params[$param] = $value;
+        }
+
+        if ($parts === []) {
+            throw new RuntimeException('Condiciones inválidas para _deleteBefore');
+        }
+
+        return [implode(' AND ', $parts), $params];
     }
 
     private function quoteFunction(string $value): string

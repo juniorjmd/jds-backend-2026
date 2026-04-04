@@ -15,6 +15,11 @@ $expected = [
     'DATABASE_GENERIC_CONTRUCT_UPDATE',
     'DATABASE_GENERIC_CONTRUCT_DELETE',
     'DATABASE_GENERIC_CONTRUCT_PROCEDURE',
+    'DATABASE_GENERIC_CONTRUCT_INSERT_SELECT',
+    'INSERT_PERFIL_USUARIO',
+    'mnbvcxzxcxcxasdfewq15616',
+    'qwer12356yhn7ujm8ik',
+    'BUSCAR_STOCK_LOCATION',
 ];
 
 foreach ($expected as $action) {

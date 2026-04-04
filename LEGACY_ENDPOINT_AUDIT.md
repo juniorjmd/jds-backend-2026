@@ -48,6 +48,29 @@ Eso incluye acciones de:
 
 ### Backend nuevo: estado visible por modulo
 
+#### Cierre compartido en curso: `Admin` + `Carwash` + `Vehiculos` + `Inventario`
+
+- se abrio un frente unico de hardening porque los cuatro modulos seguian dependiendo de acciones raiz legacy
+- acciones raiz ya implementadas en backend nuevo:
+  - `DATABASE_GENERIC_CONTRUCT_INSERT_SELECT`
+  - `INSERT_PERFIL_USUARIO`
+  - `mnbvcxzxcxcxasdfewq15616`
+  - `qwer12356yhn7ujm8ik`
+  - `BUSCAR_STOCK_LOCATION`
+- validacion real local ya hecha para acciones no destructivas:
+  - `mnbvcxzxcxcxasdfewq15616`
+  - `BUSCAR_STOCK_LOCATION`
+  - `e06c06e7e4ef58bdb0kieujfñ541b3017fdd35473`
+- validacion real local adicional sobre tabla controlada `test_crud_clientes`:
+  - `DATABASE_GENERIC_CONTRUCT_INSERT`
+  - `DATABASE_GENERIC_CONTRUCT_SELECT`
+  - `DATABASE_GENERIC_CONTRUCT_UPDATE`
+  - `DATABASE_GENERIC_CONTRUCT_INSERT_SELECT`
+  - `DATABASE_GENERIC_CONTRUCT_DELETE`
+- validacion manual controlada pendiente por afectar datos compartidos:
+  - `INSERT_PERFIL_USUARIO`
+  - `qwer12356yhn7ujm8ik`
+
 #### Carwash
 
 - estado: migrado parcial y ahora alineado con contrato estandar
