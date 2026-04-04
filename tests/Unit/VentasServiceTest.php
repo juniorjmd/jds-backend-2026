@@ -43,7 +43,7 @@ class VentasServiceTest
 
     private function testAssignSalesCreditPayments(): void
     {
-        echo "TEST 1: assignSalesCreditPayments returns summary... ";
+        echo "TEST 1: assignSalesCreditPayments returns legacy document payload... ";
 
         try {
             $service = new VentasService(
@@ -62,7 +62,20 @@ class VentasServiceTest
                 false
             );
 
-            if ($result['orden_documento'] !== 123 || $result['valor_total_pagado'] !== 35000.0) {
+            if ($result['error'] !== 'ok') {
+                throw new \Exception('Expected legacy ok response');
+            }
+
+            if (($result['numdata'] ?? 0) !== 1) {
+                throw new \Exception('Expected numdata=1');
+            }
+
+            $document = $result['data']['documentoFinal'] ?? null;
+            if (!is_array($document)) {
+                throw new \Exception('Expected documentoFinal payload');
+            }
+
+            if (($document['orden'] ?? 0) !== 123 || ($document['valorTotalPagado'] ?? 0.0) !== 35000.0) {
                 throw new \Exception('Unexpected service response');
             }
 

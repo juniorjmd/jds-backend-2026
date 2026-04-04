@@ -26,7 +26,7 @@ class VentasService
         $this->validateDocumentOrder($documentOrder);
         $summary = $this->summarizePayments($payments);
 
-        return [
+        return $this->buildLegacyDocumentResponse([
             'orden_documento' => $documentOrder,
             'tipo_operacion' => 'compra_credito',
             'pagos_registrados' => $summary['count'],
@@ -35,7 +35,7 @@ class VentasService
             'num_dias_cuotas' => $installmentDays,
             'estado' => 'PAGOS_ASIGNADOS',
             'fecha_actualizacion' => date('Y-m-d H:i:s'),
-        ];
+        ], $payments);
     }
 
     public function updatePurchaseCreditPayments(
@@ -52,7 +52,7 @@ class VentasService
         $this->validateDocumentOrder($documentOrder);
         $summary = $this->summarizePayments($payments);
 
-        return [
+        return $this->buildLegacyDocumentResponse([
             'orden_documento' => $documentOrder,
             'tipo_operacion' => 'compra_credito_edicion',
             'pagos_registrados' => $summary['count'],
@@ -65,7 +65,7 @@ class VentasService
             'fecha_documento' => $date,
             'estado' => 'PAGOS_ACTUALIZADOS',
             'fecha_actualizacion' => date('Y-m-d H:i:s'),
-        ];
+        ], $payments);
     }
 
     public function assignSalesCreditPayments(
@@ -79,7 +79,7 @@ class VentasService
         $this->validateDocumentOrder($documentOrder);
         $summary = $this->summarizePayments($payments);
 
-        return [
+        return $this->buildLegacyDocumentResponse([
             'orden_documento' => $documentOrder,
             'tipo_operacion' => $remision ? 'remision_credito' : 'venta_credito',
             'pagos_registrados' => $summary['count'],
@@ -89,7 +89,7 @@ class VentasService
             'remision' => $remision,
             'estado' => 'PAGOS_ASIGNADOS',
             'fecha_actualizacion' => date('Y-m-d H:i:s'),
-        ];
+        ], $payments);
     }
 
     public function assignCreditInstallmentPayment(int $documentOrder, array $payments): array
@@ -98,14 +98,14 @@ class VentasService
         $this->validateDocumentOrder($documentOrder);
         $summary = $this->summarizePayments($payments);
 
-        return [
+        return $this->buildLegacyDocumentResponse([
             'orden_documento' => $documentOrder,
             'tipo_operacion' => 'abono_credito',
             'pagos_registrados' => $summary['count'],
             'valor_total_pagado' => $summary['total'],
             'estado' => 'ABONO_REGISTRADO',
             'fecha_actualizacion' => date('Y-m-d H:i:s'),
-        ];
+        ], $payments);
     }
 
     private function ensureAuthenticated(): void
@@ -154,6 +154,25 @@ class VentasService
         return [
             'count' => $count,
             'total' => round($total, 2),
+        ];
+    }
+
+    private function buildLegacyDocumentResponse(array $documentSummary, array $payments): array
+    {
+        return [
+            'error' => 'ok',
+            'numdata' => 1,
+            'data' => [
+                'documentoFinal' => [
+                    'orden' => $documentSummary['orden_documento'],
+                    'pagos' => $payments,
+                    'estado' => $documentSummary['estado'],
+                    'tipoOperacion' => $documentSummary['tipo_operacion'],
+                    'pagosRegistrados' => $documentSummary['pagos_registrados'],
+                    'valorTotalPagado' => $documentSummary['valor_total_pagado'],
+                    'resumen' => $documentSummary,
+                ],
+            ],
         ];
     }
 }

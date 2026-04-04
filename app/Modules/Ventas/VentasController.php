@@ -28,9 +28,15 @@ class VentasController
                 installmentDays: (int) $this->request->input('numDiasCuotas', 30)
             );
 
-            Response::ok($result);
+            (new Response())
+                ->status(200)
+                ->json($result)
+                ->send();
         } catch (\Exception $e) {
-            Response::fail('ASSIGN_PURCHASE_CREDIT_PAYMENTS_ERROR', $e->getMessage());
+            (new Response())
+                ->status(400)
+                ->json(['error' => $e->getMessage()])
+                ->send();
         }
     }
 
@@ -48,9 +54,15 @@ class VentasController
                 date: (string) $this->request->input('fecha', '')
             );
 
-            Response::ok($result);
+            (new Response())
+                ->status(200)
+                ->json($result)
+                ->send();
         } catch (\Exception $e) {
-            Response::fail('UPDATE_PURCHASE_CREDIT_PAYMENTS_ERROR', $e->getMessage());
+            (new Response())
+                ->status(400)
+                ->json(['error' => $e->getMessage()])
+                ->send();
         }
     }
 
@@ -65,9 +77,15 @@ class VentasController
                 remision: (bool) $this->request->input('remision', false)
             );
 
-            Response::ok($result);
+            (new Response())
+                ->status(200)
+                ->json($result)
+                ->send();
         } catch (\Exception $e) {
-            Response::fail('ASSIGN_SALES_CREDIT_PAYMENTS_ERROR', $e->getMessage());
+            (new Response())
+                ->status(400)
+                ->json(['error' => $e->getMessage()])
+                ->send();
         }
     }
 
@@ -79,9 +97,15 @@ class VentasController
                 payments: $this->normalizePayments($this->request->input('pagos', []))
             );
 
-            Response::ok($result);
+            (new Response())
+                ->status(200)
+                ->json($result)
+                ->send();
         } catch (\Exception $e) {
-            Response::fail('ASSIGN_CREDIT_INSTALLMENT_PAYMENT_ERROR', $e->getMessage());
+            (new Response())
+                ->status(400)
+                ->json(['error' => $e->getMessage()])
+                ->send();
         }
     }
 

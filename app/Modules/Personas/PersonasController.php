@@ -19,9 +19,15 @@ class PersonasController
     {
         try {
             $result = $this->service->searchOdooPersonTitle();
-            Response::ok($result);
+            (new Response())
+                ->status(200)
+                ->json($result)
+                ->send();
         } catch (\Exception $e) {
-            Response::fail('SEARCH_ODOO_PERSON_TITLE_ERROR', $e->getMessage());
+            (new Response())
+                ->status(500)
+                ->json(['error' => $e->getMessage()])
+                ->send();
         }
     }
 
@@ -29,9 +35,15 @@ class PersonasController
     {
         try {
             $result = $this->service->getClientMasters();
-            Response::ok($result);
+            (new Response())
+                ->status(200)
+                ->json($result)
+                ->send();
         } catch (\Exception $e) {
-            Response::fail('GET_CLIENT_MASTERS_ERROR', $e->getMessage());
+            (new Response())
+                ->status(500)
+                ->json(['error' => $e->getMessage()])
+                ->send();
         }
     }
 }

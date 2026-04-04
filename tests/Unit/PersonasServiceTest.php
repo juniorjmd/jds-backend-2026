@@ -45,7 +45,7 @@ class PersonasServiceTest
         try {
             $result = $this->service()->searchOdooPersonTitle();
 
-            if (!is_array($result) || !isset($result[0]['display_name'])) {
+            if (!is_array($result) || ($result['error'] ?? '') !== 'ok' || !isset($result['data'][0]['display_name'])) {
                 throw new \Exception('invalid Odoo title response');
             }
 
@@ -64,7 +64,7 @@ class PersonasServiceTest
         try {
             $result = $this->service()->getClientMasters();
 
-            if (!isset($result['parametros'], $result['tipo_id_clientes'], $result['ciudades'])) {
+            if (($result['error'] ?? '') !== 'ok' || !isset($result['datos']['parametros'], $result['datos']['tipo_id_clientes'], $result['datos']['ciudades'])) {
                 throw new \Exception('invalid client masters response');
             }
 
