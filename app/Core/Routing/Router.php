@@ -5,6 +5,8 @@ namespace App\Core\Routing;
 
 use App\Core\Http\Request;
 use App\Core\Http\Response;
+use App\Modules\Admin\AdminController;
+use App\Modules\Admin\Services\AdminService;
 use App\Modules\Auth\AuthContext;
 use App\Modules\Carwash\CarwashController;
 use App\Modules\Carwash\Services\CarwashService;
@@ -150,12 +152,20 @@ final class Router
         [$class, $method] = $handler;
 
         $instance = match ($class) {
+            AdminController::class => $this->createAdminController($request),
             CarwashController::class => $this->createCarwashController($request),
             InventarioController::class => $this->createInventarioController($request),
             default => throw new \Exception("No factory for {$class}"),
         };
 
         return $instance->$method();
+    }
+
+    private function createAdminController(Request $request): AdminController
+    {
+        $authContext = new AuthContext();
+        $service = new AdminService($request, $authContext);
+        return new AdminController($request, $service);
     }
 
     private function createCarwashController(Request $request): CarwashController
