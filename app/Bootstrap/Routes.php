@@ -25,6 +25,10 @@ final class Routes
             return require __DIR__ . '/../../config/carwash-actions.php';
         })();
 
+        $inventarioActions = (static function() {
+            return require __DIR__ . '/../../config/inventario-actions.php';
+        })();
+
         $internalActions = [
             'PING' => function (Request $req) {
                 return [
@@ -38,7 +42,8 @@ final class Routes
         self::$map = array_merge(
             $internalActions,
             is_array($legacyActions) ? $legacyActions : [],
-            is_array($carwashActions) ? $carwashActions : []
+            is_array($carwashActions) ? $carwashActions : [],
+            is_array($inventarioActions) ? $inventarioActions : []
         );
 
         return self::$map;
