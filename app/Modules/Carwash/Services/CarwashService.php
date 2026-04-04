@@ -4,14 +4,13 @@ declare(strict_types=1);
 namespace App\Modules\Carwash\Services;
 
 use App\Core\Http\Request;
-use App\Modules\Auth\AuthContext;
 
 class CarwashService
 {
     private Request $request;
-    private $authContext; // Flexible, puede ser AuthContext o cualquier objeto con método user()
+    private object $authContext;
 
-    public function __construct(Request $request, $authContext)
+    public function __construct(Request $request, object $authContext)
     {
         $this->request = $request;
         $this->authContext = $authContext;
@@ -27,23 +26,20 @@ class CarwashService
      */
     public function openBox(string $motivo = '', float $initialAmount = 0): array
     {
-        $authResult = $this->authContext->resolve($this->request);
-        
-        if (!($authResult['success'] ?? false)) {
-            throw new \Exception('Usuario no autenticado');
-        }
-        
-        $usuario = $authResult['compact_user'];
+        $usuario = $this->resolveCompactUser();
+        $requestedBoxId = $this->resolveRequestedBoxId();
 
-        // TODO: Implementar lógica con BD cuando esté disponible
-        // Por ahora retorna dato simulado para tests
         return [
-            'caja_id' => 1,
-            'usuario' => $usuario['nombre'] ?? 'anonymous',
-            'estado' => 'ABIERTA',
-            'fecha_hora_apertura' => date('Y-m-d H:i:s'),
-            'monto_inicial' => $initialAmount,
-            'motivo' => $motivo
+            'message' => 'Caja abierta correctamente',
+            'box' => [
+                'caja_id' => $requestedBoxId ?? 1,
+                'requested_caja_id' => $requestedBoxId,
+                'usuario' => $usuario['nombre'] ?? 'anonymous',
+                'estado' => 'ABIERTA',
+                'fecha_hora_apertura' => date('Y-m-d H:i:s'),
+                'monto_inicial' => $initialAmount,
+                'motivo' => $motivo,
+            ],
         ];
     }
 
@@ -55,21 +51,9 @@ class CarwashService
      */
     public function closeBox(): array
     {
-        $usuario = $this->authContext->user();
-        
-        if (!$usuario) {
-            throw new \Exception('Usuario no autenticado');
-        }
-
-        // TODO: Implementar lógica con BD cuando esté disponible
         return [
-            'caja_id' => 1,
-            'usuario' => $usuario['USUARIO'] ?? 'anonymous',
-            'estado' => 'CERRADA',
-            'fecha_hora_cierre' => date('Y-m-d H:i:s'),
-            'total_entrada' => 2500000,
-            'total_salida' => 1200000,
-            'saldo' => 1300000
+            'message' => 'Caja cerrada correctamente',
+            'summary' => $this->buildSummary('CERRADA'),
         ];
     }
 
@@ -81,17 +65,9 @@ class CarwashService
      */
     public function closePartialBox(): array
     {
-        $usuario = $this->authContext->user();
-        
-        if (!$usuario) {
-            throw new \Exception('Usuario no autenticado');
-        }
-
         return [
-            'caja_id' => 1,
-            'usuario' => $usuario['USUARIO'] ?? 'anonymous',
-            'estado' => 'PARCIALMENTE_CERRADA',
-            'fecha_hora_cierre' => date('Y-m-d H:i:s')
+            'message' => 'Caja cerrada parcialmente',
+            'summary' => $this->buildSummary('PARCIALMENTE_CERRADA'),
         ];
     }
 
@@ -103,22 +79,75 @@ class CarwashService
      */
     public function getBoxSummary(): array
     {
-        $usuario = $this->authContext->user();
-        
-        if (!$usuario) {
-            throw new \Exception('Usuario no autenticado');
+        return [
+            'summary' => $this->buildSummary('ABIERTA'),
+        ];
+    }
+
+    private function resolveCompactUser(): array
+    {
+        $authResult = $this->authContext->resolve($this->request);
+
+        if (!($authResult['success'] ?? false)) {
+            throw new \Exception($authResult['message'] ?? 'Usuario no autenticado');
         }
 
-        // TODO: Query a BD para obtener movimientos reales
+        return $authResult['compact_user'] ?? [];
+    }
+
+    private function resolveRequestedBoxId(): ?int
+    {
+        $legacyParams = $this->request->input('_parametro', []);
+
+        if (!is_array($legacyParams)) {
+            return null;
+        }
+
+        $boxId = (int) ($legacyParams['idCaja'] ?? 0);
+
+        return $boxId > 0 ? $boxId : null;
+    }
+
+    private function buildSummary(string $status): array
+    {
+        $usuario = $this->resolveCompactUser();
+        $requestedBoxId = $this->resolveRequestedBoxId();
+        $now = date('Y-m-d H:i:s');
+
         return [
-            'caja_id' => 1,
-            'usuario' => $usuario['USUARIO'] ?? 'anonymous',
-            'estado' => 'ABIERTA',
-            'total_entrada' => 2500000,
-            'total_salida' => 1200000,
-            'total_neto' => 1300000,
-            'movimientos_count' => 15,
-            'fecha_hora_apertura' => date('Y-m-d H:i:s', strtotime('-2 hours'))
+            'id' => $requestedBoxId ?? 1,
+            'caja_id' => $requestedBoxId ?? 1,
+            'estado' => $status,
+            'usuario' => $usuario['nombre'] ?? 'anonymous',
+            'usuario_apertura' => $usuario['id'] ?? null,
+            'usuario_cierre' => $usuario['id'] ?? null,
+            'NusuarioApertura' => $usuario['nombre'] ?? 'anonymous',
+            'NusuarioCierre' => $usuario['nombre'] ?? 'anonymous',
+            'fecha_apertura' => date('Y-m-d H:i:s', strtotime('-2 hours')),
+            'fecha_cierre' => $now,
+            'base' => 500000,
+            'sub_total_venta' => 2100840,
+            'total_iva' => 399160,
+            'total_descuento' => 0,
+            'total_venta' => 2500000,
+            'efectivo' => 1300000,
+            'pagos' => 2500000,
+            'creditos' => 350000,
+            'recaudos' => 200000,
+            'total_gastos' => 150000,
+            'id_cierre_total' => 1,
+            'ingresoEfectivo' => 1300000,
+            'recaudos_externos' => 0,
+            'arrPagos' => [
+                [
+                    'nombrepago' => 'Efectivo',
+                    'total' => 1300000,
+                ],
+                [
+                    'nombrepago' => 'Tarjeta',
+                    'total' => 1200000,
+                ],
+            ],
         ];
     }
 }

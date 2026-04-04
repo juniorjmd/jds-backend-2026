@@ -45,6 +45,7 @@ Documento de apoyo:
 Antes de abrir mas cobertura en modulos nuevos, cerrar los modulos ya existentes en backend nuevo:
 
 - `auth`
+- `carwash`
 - `personas`
 - `ventas`
 - `datosiniciales`
@@ -116,6 +117,7 @@ Despues de `documentos`, completar los modulos actuales que ya existen en backen
 
 Focos visibles en esta revision:
 
+- `carwash` ya tiene contrato estandar alineado con frontend pero sigue con logica simulada
 - `documentos` todavia no tiene mapa legacy real en `config/documentos-actions.php`
 - `admin` tiene cobertura parcial frente al legacy
 - hay acciones genericas de base de datos y acciones Odoo/reportes sin mapear en backend nuevo
@@ -126,13 +128,14 @@ Focos visibles en esta revision:
 
 1. Auditar contratos de entrada/salida de modulos ya migrados
 2. Auditar consumo frontend de esos modulos y registrar archivos afectados
-3. Completar mapa legacy de `documentos`
-4. Implementar cobertura total legacy de `documentos` con respuesta estandar
-5. Preparar cambio equivalente en frontend para `documentos`
-6. Completar cobertura faltante de `admin`
-7. Completar cobertura faltante de `inventario`, `ventas`, `personas`, `vehiculos` y `datosiniciales`
-8. Solo despues de cerrar modulos actuales, revisar acciones genericas y modulos legacy sin reflejo directo
-9. Ejecutar:
+3. Cerrar `carwash` con logica real de caja sobre BD/procedimientos
+4. Completar mapa legacy de `documentos`
+5. Implementar cobertura total legacy de `documentos` con respuesta estandar
+6. Preparar cambio equivalente en frontend para `documentos`
+7. Completar cobertura faltante de `admin`
+8. Completar cobertura faltante de `inventario`, `ventas`, `personas`, `vehiculos` y `datosiniciales`
+9. Solo despues de cerrar modulos actuales, revisar acciones genericas y modulos legacy sin reflejo directo
+10. Ejecutar:
    - `php tests/Unit/DocumentosServiceTest.php`
    - `php tests/Unit/DocumentosParametersTest.php`
    - `php tests/run-tests.php`

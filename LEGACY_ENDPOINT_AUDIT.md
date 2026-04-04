@@ -48,6 +48,25 @@ Eso incluye acciones de:
 
 ### Backend nuevo: estado visible por modulo
 
+#### Carwash
+
+- estado: migrado parcial y ahora alineado con contrato estandar
+- acciones visibles:
+  - `ABRIR_CAJA_ACTIVA`
+  - `CERRAR_CAJA_ACTIVA`
+  - `CERRAR_CAJA_PARCIAL`
+  - `OBTENER_RESUMEN_CAJA`
+- pendiente:
+  - reemplazar payload simulado por logica real contra legacy/BD
+  - confirmar ownership final de acciones que legacy tambien expone desde `ventas`
+- archivos frontend detectados:
+  - `src/app/services/Cajas.services.ts`
+  - `src/app/modules/pos/pages/abrir-caja/abrir-caja.component.ts`
+  - `src/app/modules/pos/pages/cerrar-caja/cerrar-caja.component.ts`
+  - `src/app/modules/pos/modals/definir-base-caja/definir-base-caja.component.ts`
+- nota detallada:
+  - `pr-features/02-carwash-legacy-routing/04-BACK-FRONT-ALIGNMENT.md`
+
 #### Auth
 
 - estado: migrado y mapeado en `config/actions.php`
@@ -164,14 +183,15 @@ Y por cada modulo registrar tambien:
 
 Primero cerrar los modulos ya existentes en backend nuevo:
 
-1. `documentos`
-2. `admin`
-3. `inventario`
+1. `auth`
+2. `carwash`
+3. `personas`
 4. `ventas`
-5. `personas`
+5. `datosiniciales`
 6. `vehiculos`
-7. `datosiniciales`
-8. `auth`
+7. `inventario`
+8. `admin`
+9. `documentos`
 
 Despues de eso evaluar:
 

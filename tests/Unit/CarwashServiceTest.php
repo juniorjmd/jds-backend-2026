@@ -16,7 +16,7 @@ class CarwashServiceTest
     private int $failCount = 0;
 
     /**
-     * Crea un mock de AuthContext (no se puede usar anonymous porque es final)
+     * Crea un mock de AuthContext compatible con resolve()
      */
     private function createMockAuthContext(?array $user): object
     {
@@ -28,16 +28,17 @@ class CarwashServiceTest
                 $this->userData = $data;
             }
 
-            public function user(): ?array
-            {
-                return $this->userData;
-            }
-
             public function resolve($request): array
             {
                 return $this->userData === null
-                    ? ['success' => false]
-                    : ['success' => true, 'compact_user' => ['nombre' => $this->userData['USUARIO'] ?? 'admin']];
+                    ? ['success' => false, 'message' => 'Usuario no autenticado']
+                    : [
+                        'success' => true,
+                        'compact_user' => [
+                            'id' => $this->userData['ID'] ?? 1,
+                            'nombre' => $this->userData['USUARIO'] ?? 'admin',
+                        ],
+                    ];
             }
         };
     }
@@ -98,16 +99,16 @@ class CarwashServiceTest
                 throw new \Exception("openBox did not return array");
             }
 
-            if (!array_key_exists('caja_id', $result)) {
-                throw new \Exception("Response missing caja_id");
+            if (!array_key_exists('message', $result)) {
+                throw new \Exception("Response missing message");
             }
 
-            if (!array_key_exists('estado', $result)) {
-                throw new \Exception("Response missing estado");
+            if (!array_key_exists('box', $result)) {
+                throw new \Exception("Response missing box");
             }
 
-            if (!array_key_exists('usuario', $result)) {
-                throw new \Exception("Response missing usuario");
+            if (!array_key_exists('caja_id', $result['box'])) {
+                throw new \Exception("Response box missing caja_id");
             }
 
             echo "✓ PASSED\n";
@@ -155,24 +156,24 @@ class CarwashServiceTest
             $body = ['action' => 'ABRIR_CAJA_ACTIVA'];
             $request = new \App\Core\Http\Request('POST', [], $body, [], []);
 
-            $mockAuthContext = $this->createMockAuthContext(['USUARIO' => 'admin']);
+            $mockAuthContext = $this->createMockAuthContext(['USUARIO' => 'admin', 'ID' => 99]);
 
             $service = new \App\Modules\Carwash\Services\CarwashService($request, $mockAuthContext);
             $result = $service->openBox('Test', 500000);
 
-            if (!is_int($result['caja_id'])) {
+            if (!is_int($result['box']['caja_id'])) {
                 throw new \Exception("caja_id must be int");
             }
 
-            if (!is_string($result['usuario'])) {
+            if (!is_string($result['box']['usuario'])) {
                 throw new \Exception("usuario must be string");
             }
 
-            if (!is_string($result['estado'])) {
+            if (!is_string($result['box']['estado'])) {
                 throw new \Exception("estado must be string");
             }
 
-            if (!is_numeric($result['monto_inicial'])) {
+            if (!is_numeric($result['box']['monto_inicial'])) {
                 throw new \Exception("monto_inicial must be numeric");
             }
 
