@@ -1,120 +1,152 @@
-# Próximos Pasos - Opciones
+# Siguientes Pasos
 
-Tu proyecto está en un estado excelente con la arquitectura configurada y todos los tests unitarios pasando. Aquí están tus opciones:
+## Estado actual
 
----
+- Branch activo: `feature/documentos-legacy-routing`
+- Ultimo commit subido: `734aef6` (`align personas and ventas legacy responses`)
+- Suite actual: `19/19` pasando con `php tests/run-tests.php`
+- No subir: `.env`
 
-## 🎯 Opción 1: Push a GitHub y PR
+## Ya alineado con el frontend
 
-**Si quieres comunicar el progreso ahora:**
+- `personas`
+- `ventas`
+- `datosiniciales`
+- `vehiculos`
+- `inventario` (slice de productos y precargue usado por el front)
 
-```bash
-git push origin master
-```
+## Criterio actualizado de migracion
 
-Luego crear PR basado en:
-- `pr-features/01-auth-legacy-routing/01-SPECS.md`
-- `pr-features/01-auth-legacy-routing/02-IMPLEMENTATION.md`
-- `pr-features/01-auth-legacy-routing/03-ACCEPTANCE_CRITERIA.md`
+Antes de seguir sumando modulos nuevos, mantener estas reglas:
 
-**Ventaja:** Valida el código en GitHub, facilita review, historiza cambios
-**Tiempo:** 5 minutos
+- completar primero los modulos actuales hasta poder reemplazar el legacy de forma directa
+- dejar de trabajar por slices funcionales del frontend y pasar a cobertura completa por modulo
+- validar entradas y respuestas de todo endpoint legacy ya migrado
+- mantener respuestas estandar en el backend nuevo
+- adaptar el frontend para leer el contrato estandar del backend nuevo
+- migrar todos los endpoints legacy del modulo aunque hoy no los consuma el frontend
+- documentar por endpoint si esta:
+  - usado por el frontend actual
+  - migrado pero pendiente de validar contrato
+  - migrado y validado
+  - presente solo en legacy
+  - sin evidencia de uso actual
+- priorizar primero compatibilidad de contrato legacy y despues limpieza/eliminacion
 
----
+Documento de apoyo:
 
-## 🔧 Opción 2: Extender a Otros Módulos
+- `LEGACY_ENDPOINT_AUDIT.md`
+- `FRONTEND_ALIGNMENT_PLAN.md`
 
-**Si quieres completar el mapeo de acciones legacy completo:**
+## Pendiente prioritario
 
-Mantener el patrón para:
-- **Carwash** - probablemente las acciones más usadas
-- **Inventario** - gestión de inventario
-- **Reportes** - reportes del sistema
-- **Ventas** - módulo de ventas
-- **Admin** - acciones administrativas
+### 1. Cerrar modulos actuales para reemplazo directo
 
-**Estructura esperada:**
-```
-config/
-├── actions.php          (Auth - ya hecho)
-├── carwash-actions.php  (nuevo)
-├── inventario-actions.php (nuevo)
-├── reportes-actions.php (nuevo)
-├── ventas-actions.php   (nuevo)
-└── admin-actions.php    (nuevo)
-```
+Antes de abrir mas cobertura en modulos nuevos, cerrar los modulos ya existentes en backend nuevo:
 
-**Ventaja:** Completar compatibilidad legacy de un golpe
-**Tiempo:** 30-45 minutos para análisis + mapeo
+- `auth`
+- `personas`
+- `ventas`
+- `datosiniciales`
+- `vehiculos`
+- `inventario`
+- `admin`
+- `documentos`
 
----
+Objetivo por modulo:
 
-## 🧪 Opción 3: Resolver Conectividad a BD
+- que todas las acciones legacy del modulo existan en backend nuevo
+- que acepten los mismos parametros legacy
+- que devuelvan respuestas estandar del backend nuevo
+- que tengan tests de parametros y tests de servicio
+- que tengan identificado el ajuste requerido en frontend
+- que queden listos para reemplazar el modulo legacy sin arrastrar malas practicas del contrato anterior
 
-**Para poder ejecutar tests de integración:**
+Validar por accion:
 
-1. **¿Qué método prefieres?**
-   - A) Pedir acceso de firewall a mysql.us.stackcp.com:42363
-   - B) Usar datos mock en tests de integración
-   - C) Esperar a que la BD esté disponible
+- parametros legacy aceptados por `Request`
+- nombre y forma de campos de respuesta estandar
+- diferencias contra legacy real aunque el front no las use hoy
+- tests de parametros y tests de servicio por modulo
+- archivos frontend que consumen la accion
+- cambio necesario en frontend para leer respuesta estandar
+- PR backend y PR frontend asociados al modulo
 
-2. **Una vez resuelto:**
-   - Validar que `DatabaseConnectionTest.php` conéctete
-   - Crear tests de endpoints HTTP completos
-   - Verificar que el frontend pueda consumir las acciones
+### 2. Documentos
 
-**Ventaja:** Validar compatibilidad real con sistema existente
-**Tiempo:** Depende del método elegido
+Es el modulo con mayor brecha y el principal faltante para reemplazo directo.
 
----
+Acciones del frontend que hoy faltan o estan incompletas en backend:
 
-## 📖 Opción 4: Optimizar Router
+- `GET_DOCUMENTOS_USUARIO_ACTUAL`
+- `GET_DOCUMENTOS_USUARIO_ACTUAL_CAJA_ACTIVA`
+- `CREAR_DOCUMENTO_POR_USUARIO`
+- `CREAR_DOCUMENTO_COMPRA_POR_USUARIO`
+- `CREAR_DOCUMENTO_GASTO_POR_USUARIO`
+- `CERRAR_DOCUMENTO_FACTURA`
+- `CERRAR_DOCUMENTO_REMISION`
+- `CAMBIAR_DOCUMENTO_ACTIVO_POR_USUARIO`
+- `CAMBIAR_DOCUMENTO_COMPRA_ACTIVO_POR_USUARIO`
+- `CAMBIAR_DOCUMENTO_POR_CAJA`
+- `CAMBIAR_DOCUMENTO_A_ENVIO`
+- `CANCELAR_DOCUMENTO_POR_USUARIO`
+- `CREAR_DOCUMENTO_COTIZACION_POR_USUARIO`
+- `ASIGNAR_ABONO_DOCUMENTOS_CREDITO_POR_PAGAR`
+- `GENERAR_DOCUMENTOS_DEVOLUCION`
+- `GENERAR_DOCUMENTOS_NOTA_DEBITO`
 
-**El Router actual es funcional pero puede mejorarse:**
+Contrato de transicion a revisar:
 
-Mejoras posibles:
-- Logging de rutas para debuggear
-- Caché de mapeos de acciones
-- Manejo mejorado de errores
-- Validación de acciones válidas
+- hoy el frontend espera respuestas legacy planas
+- el backend nuevo debe converger a respuestas estandar
+- el frontend debe adaptarse modulo por modulo para leer ese contrato estandar
 
-**Ventaja:** Performance en producción
-**Tiempo:** 20-30 minutos
+Siguiente entrega recomendada:
 
----
+- crear `pr-features/13-documentos-complete-legacy-coverage/`
+- completar primero el mapa legacy real del modulo
+- implementar todas las acciones legacy visibles del modulo
+- registrar en la auditoria el estado de cada endpoint del modulo
+- documentar archivos frontend afectados y PR del frontend
+- agregar/ajustar tests unitarios
 
-## 🎓 Opción 5: Documentar Frontend
+### 3. Cobertura total legacy
 
-**Si quieres que el frontend entienda los cambios:**
+Despues de `documentos`, completar los modulos actuales que ya existen en backend nuevo hasta dejarlos cerrados por cobertura total.
 
-Crear documento:
-- Qué métodos en el Frontend usan acciones legacy
-- Cuál es la migración path esperada
-- Ejemplos de cómo migrar a `/api` en el futuro
+Focos visibles en esta revision:
 
-**Ventaja:** Comunicación clara con equipo frontend
-**Tiempo:** 15-20 minutos
+- `documentos` todavia no tiene mapa legacy real en `config/documentos-actions.php`
+- `admin` tiene cobertura parcial frente al legacy
+- hay acciones genericas de base de datos y acciones Odoo/reportes sin mapear en backend nuevo
+- hay que separar claramente endpoints usados por el front de endpoints heredados sin consumo actual confirmado
+- algunos modulos legacy todavia no tienen reflejo directo por nombre en el backend nuevo y habra que decidir su destino despues de cerrar los modulos actuales
 
----
+## Secuencia recomendada para la siguiente pasada
 
-## My Recommendation (Jerarquía)
+1. Auditar contratos de entrada/salida de modulos ya migrados
+2. Auditar consumo frontend de esos modulos y registrar archivos afectados
+3. Completar mapa legacy de `documentos`
+4. Implementar cobertura total legacy de `documentos` con respuesta estandar
+5. Preparar cambio equivalente en frontend para `documentos`
+6. Completar cobertura faltante de `admin`
+7. Completar cobertura faltante de `inventario`, `ventas`, `personas`, `vehiculos` y `datosiniciales`
+8. Solo despues de cerrar modulos actuales, revisar acciones genericas y modulos legacy sin reflejo directo
+9. Ejecutar:
+   - `php tests/Unit/DocumentosServiceTest.php`
+   - `php tests/Unit/DocumentosParametersTest.php`
+   - `php tests/run-tests.php`
 
-1. **PRIMERO:** Opción 2 (Extender a otros módulos) - Completar el trabajo en 3-4 features
-2. **LUEGO:** Opción 1 (Push a GitHub) - Documentar todo el progreso
-3. **DESPUÉS:** Opción 3 (BD) - Cuando puedas resolver firewall
-4. **FINALMENTE:** Opción 4-5 - Optimizaciones
+## Nota importante
 
----
+Seguir manteniendo estas reglas:
 
-## ❓ Para tu decisión
-
-**¿Cuál quieres hacer primero?**
-
-```
-A) Push a GitHub ahora
-B) Mapear otros módulos primero  
-C) Resolver conectividad a BD
-D) Algo diferente
-```
-
-Dame tu preferencia y continuamos 🚀
+- no quitar endpoints legacy por ahora
+- backend nuevo con respuesta estandar, no replica permanente del payload legacy
+- cada endpoint migrado debe quedar con validacion de entradas y respuesta estandar definida
+- cada modulo actual debe quedar completo antes de abrir otra migracion grande
+- cada cambio importante debe quedar en su carpeta `pr-features/XX-*`
+- cada entrega por modulo debe quedar con tests y listo para PR
+- cada modulo revisado debe dejar documentado su cambio correspondiente en frontend
+- backend y frontend deben salir en PRs separados
+- toda exclusion o falta de uso debe quedar documentada, no asumida
