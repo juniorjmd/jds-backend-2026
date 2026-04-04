@@ -11,7 +11,7 @@ class InventarioService
     private Request $request;
     private $authContext; // Flexible, puede ser cualquier objeto con método user()
 
-    public function __construct(Request $request, $authContext)
+    public function __construct(Request $request, AuthContext $authContext)
     {
         $this->request = $request;
         $this->authContext = $authContext;
@@ -33,11 +33,13 @@ class InventarioService
         float $quantity,
         string $movementType = 'salida'
     ): array {
-        $usuario = $this->authContext->user();
+        $authResult = $this->authContext->resolve($this->request);
         
-        if (!$usuario) {
+        if (!($authResult['success'] ?? false)) {
             throw new \Exception('Usuario no autenticado');
         }
+        
+        $usuario = $authResult['compact_user'];
 
         // TODO: Implementar con BD cuando esté disponible
         return [
@@ -66,11 +68,13 @@ class InventarioService
         int $productId,
         float $quantity
     ): array {
-        $usuario = $this->authContext->user();
+        $authResult = $this->authContext->resolve($this->request);
         
-        if (!$usuario) {
+        if (!($authResult['success'] ?? false)) {
             throw new \Exception('Usuario no autenticado');
         }
+        
+        $usuario = $authResult['compact_user'];
 
         // TODO: Implementar con BD cuando esté disponible
         return [
@@ -94,18 +98,20 @@ class InventarioService
      */
     public function cancelPrechart(int $ingressId): array
     {
-        $usuario = $this->authContext->user();
+        $authResult = $this->authContext->resolve($this->request);
         
-        if (!$usuario) {
+        if (!($authResult['success'] ?? false)) {
             throw new \Exception('Usuario no autenticado');
         }
+        
+        $usuario = $authResult['compact_user'];
 
         // TODO: Implementar con BD cuando esté disponible
         return [
             'ingreso_id' => $ingressId,
             'estado' => 'CANCELADO',
             'fecha_cancelacion' => date('Y-m-d H:i:s'),
-            'usuario' => $usuario['USUARIO'] ?? 'anonymous'
+            'usuario' => $usuario['nombre'] ?? 'anonymous'
         ];
     }
 
@@ -119,11 +125,13 @@ class InventarioService
      */
     public function savePrechart(array $items, int $ingressId): array
     {
-        $usuario = $this->authContext->user();
+        $authResult = $this->authContext->resolve($this->request);
         
-        if (!$usuario) {
+        if (!($authResult['success'] ?? false)) {
             throw new \Exception('Usuario no autenticado');
         }
+        
+        $usuario = $authResult['compact_user'];
 
         // TODO: Implementar con BD cuando esté disponible
         return [
@@ -131,7 +139,7 @@ class InventarioService
             'items_guardados' => count($items),
             'estado' => 'GUARDADO',
             'fecha_guardado' => date('Y-m-d H:i:s'),
-            'usuario' => $usuario['USUARIO'] ?? 'anonymous'
+            'usuario' => $usuario['nombre'] ?? 'anonymous'
         ];
     }
 }
