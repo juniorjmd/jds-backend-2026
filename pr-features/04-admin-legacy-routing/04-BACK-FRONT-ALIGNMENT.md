@@ -88,3 +88,18 @@ La alineacion se resolvio centralizando el desempaquetado del envelope estandar 
 - backend: cobertura legacy visible cerrada y respuesta estandar alineada
 - frontend: servicios y consumidores principales adaptados
 - siguiente paso: continuar con `DatosIniciales` o `Inventario` usando el mismo criterio
+
+## Validacion real local
+
+Fecha de validacion: `2026-04-04`
+
+Entorno disponible:
+
+- frontend local: `http://localhost/jds_carwash/`
+- backend local: `http://localhost/jds_back_2026/api/`
+- base de datos real conectada desde `.env`
+
+Estado de esta validacion:
+
+- pendiente de ejecutar flujo funcional completo desde UI autenticada
+- queda incluido como criterio obligatorio de cierre desde esta fecha

@@ -56,3 +56,29 @@ Consumidores directos confirmados:
   - `feature/documentos-legacy-routing` -> PR de cierre de `Inventario`
 - frontend:
   - `dev` -> PR de alineacion de `Inventario`
+
+## Validacion real local
+
+Fecha de validacion: `2026-04-04`
+
+Entorno:
+
+- frontend local: `http://localhost/jds_carwash/`
+- backend local: `http://localhost/jds_back_2026/api/`
+- base de datos real conectada desde `.env`
+
+Pruebas ejecutadas:
+
+- `GET_CATEGORIAS` desde flujo real de frontend
+- `POST http://localhost/jds_back_2026/api/inventario/` con consumo real del modulo
+
+Resultado:
+
+- el endpoint responde con control de autenticacion real
+- se detecto que en Apache local la cabecera `Authorization` no estaba llegando de forma confiable al backend
+- se alineo el contrato de autenticacion aceptando tambien `X-Session-Token`
+- el frontend quedo enviando tanto `Authorization` como `X-Session-Token`
+- `GET_CATEGORIAS` ya respondio correctamente con sesion real despues del ajuste
+- conclusion:
+  - el contrato del endpoint ya esta vivo
+  - el flujo autenticado del modulo queda estable en este entorno local

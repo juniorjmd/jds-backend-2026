@@ -52,6 +52,10 @@ final class Routes
             return require __DIR__ . '/../../config/vehiculos-actions.php';
         })();
 
+        $genericActions = (static function() {
+            return require __DIR__ . '/../../config/generic-actions.php';
+        })();
+
         $internalActions = [
             'PING' => function (Request $request) {
                 return [
@@ -72,7 +76,8 @@ final class Routes
             is_array($ventasActions) ? $ventasActions : [],
             is_array($personasActions) ? $personasActions : [],
             is_array($datosInicialesActions) ? $datosInicialesActions : [],
-            is_array($vehiculosActions) ? $vehiculosActions : []
+            is_array($vehiculosActions) ? $vehiculosActions : [],
+            is_array($genericActions) ? $genericActions : []
         );
 
         return self::$map;

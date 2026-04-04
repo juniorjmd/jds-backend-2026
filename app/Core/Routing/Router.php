@@ -65,7 +65,7 @@ final class Router
 
         if ($module && $method) {
 
-            $controllerClass = "App\\Modules\\" . ucfirst($module) . "\\" . ucfirst($module) . "Controller";
+            $controllerClass = $this->resolveControllerClass($module);
 
             if (!class_exists($controllerClass)) {
                 Response::fail(
@@ -96,7 +96,7 @@ final class Router
 
         if ($module && !$method) {
 
-            $controllerClass = "App\\Modules\\" . ucfirst($module) . "\\" . ucfirst($module) . "Controller";
+            $controllerClass = $this->resolveControllerClass($module);
 
             if (class_exists($controllerClass)) {
 
@@ -233,5 +233,20 @@ final class Router
         $service = new VehiculosService($request, $authContext);
 
         return new VehiculosController($request, $service);
+    }
+
+    private function resolveControllerClass(string $module): string
+    {
+        return match (strtolower($module)) {
+            'admin' => AdminController::class,
+            'carwash' => CarwashController::class,
+            'inventario' => InventarioController::class,
+            'documentos' => DocumentosController::class,
+            'ventas' => VentasController::class,
+            'personas' => PersonasController::class,
+            'datosiniciales', 'datos-iniciales' => DatosInicialesController::class,
+            'vehiculos' => VehiculosController::class,
+            default => "App\\Modules\\" . ucfirst($module) . "\\" . ucfirst($module) . "Controller",
+        };
     }
 }

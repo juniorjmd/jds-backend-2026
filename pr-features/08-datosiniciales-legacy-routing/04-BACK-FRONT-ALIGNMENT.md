@@ -63,3 +63,25 @@ Para sucursal principal:
 
 - backend: PR del modulo `DatosIniciales` en `jds-backend-app-2026`
 - frontend: PR de alineacion `DatosIniciales` en `https://github.com/juniorjmd/jds-frontend-2026.git`
+
+## Validacion real local
+
+Fecha de validacion: `2026-04-04`
+
+Entorno:
+
+- frontend local: `http://localhost/jds_carwash/`
+- backend local: `http://localhost/jds_back_2026/api/`
+- base de datos real conectada desde `.env`
+
+Prueba ejecutada:
+
+- `POST http://localhost/jds_back_2026/api/datosiniciales/`
+- body:
+  - `action: GET_SUCURSAL_PRINCIPAL_DATA`
+
+Resultado:
+
+- `ok: true`
+- se devolvio `data.branches`
+- el login del frontend ya pudo cargar datos iniciales reales contra backend nuevo

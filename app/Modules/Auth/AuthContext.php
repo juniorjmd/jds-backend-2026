@@ -106,6 +106,7 @@ final class AuthContext
         $candidates = [
             $request->input('key_registro'),
             $request->input('_llaveSession'),
+            $request->header('x-session-token'),
             $request->bearerToken(),
         ];
 

@@ -197,3 +197,28 @@ Y luego adaptar consumidores para que dependan de ese servicio ya normalizado, e
 - backend: revisado en mapeo, parametros y forma de respuesta
 - frontend: consumidores principales identificados
 - siguiente paso: implementar contrato estandar del modulo y adaptar `login.services.ts`
+
+## Validacion real local
+
+Fecha de validacion: `2026-04-04`
+
+Entorno:
+
+- frontend local: `http://localhost/jds_carwash/`
+- backend local: `http://localhost/jds_back_2026/api/`
+- base de datos real conectada desde `.env`
+
+Prueba ejecutada:
+
+- `POST http://localhost/jds_back_2026/api/login/`
+- body:
+  - `action: ef2e1d89937fba9f888516293ab1e19e7ed789a5`
+  - `_usuario: juniorjmd`
+  - `_password: Prom2001josdom*`
+
+Resultado:
+
+- `ok: true`
+- login exitoso
+- se devolvio `usuario.key_registro`
+- el backend autentica correctamente con datos reales
