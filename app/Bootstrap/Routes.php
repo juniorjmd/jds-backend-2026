@@ -40,6 +40,18 @@ final class Routes
             return require __DIR__ . '/../../config/ventas-actions.php';
         })();
 
+        $personasActions = (static function() {
+            return require __DIR__ . '/../../config/personas-actions.php';
+        })();
+
+        $datosInicialesActions = (static function() {
+            return require __DIR__ . '/../../config/datosiniciales-actions.php';
+        })();
+
+        $vehiculosActions = (static function() {
+            return require __DIR__ . '/../../config/vehiculos-actions.php';
+        })();
+
         $internalActions = [
             'PING' => function (Request $request) {
                 return [
@@ -57,7 +69,10 @@ final class Routes
             is_array($carwashActions) ? $carwashActions : [],
             is_array($inventarioActions) ? $inventarioActions : [],
             is_array($documentosActions) ? $documentosActions : [],
-            is_array($ventasActions) ? $ventasActions : []
+            is_array($ventasActions) ? $ventasActions : [],
+            is_array($personasActions) ? $personasActions : [],
+            is_array($datosInicialesActions) ? $datosInicialesActions : [],
+            is_array($vehiculosActions) ? $vehiculosActions : []
         );
 
         return self::$map;

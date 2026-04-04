@@ -12,10 +12,16 @@ use App\Modules\Carwash\CarwashController;
 use App\Modules\Carwash\Services\CarwashService;
 use App\Modules\Documentos\DocumentosController;
 use App\Modules\Documentos\Services\DocumentosService;
+use App\Modules\DatosIniciales\DatosInicialesController;
+use App\Modules\DatosIniciales\Services\DatosInicialesService;
 use App\Modules\Inventario\InventarioController;
 use App\Modules\Inventario\Services\InventarioService;
+use App\Modules\Personas\PersonasController;
+use App\Modules\Personas\Services\PersonasService;
 use App\Modules\Ventas\VentasController;
 use App\Modules\Ventas\Services\VentasService;
+use App\Modules\Vehiculos\VehiculosController;
+use App\Modules\Vehiculos\Services\VehiculosService;
 
 final class Router
 {
@@ -145,6 +151,9 @@ final class Router
             InventarioController::class => $this->createInventarioController($request),
             DocumentosController::class => $this->createDocumentosController($request),
             VentasController::class => $this->createVentasController($request),
+            PersonasController::class => $this->createPersonasController($request),
+            DatosInicialesController::class => $this->createDatosInicialesController(),
+            VehiculosController::class => $this->createVehiculosController($request),
             default => throw new \Exception("No factory for {$class}"),
         };
 
@@ -180,6 +189,9 @@ final class Router
             InventarioController::class => $this->createInventarioController($request),
             DocumentosController::class => $this->createDocumentosController($request),
             VentasController::class => $this->createVentasController($request),
+            PersonasController::class => $this->createPersonasController($request),
+            DatosInicialesController::class => $this->createDatosInicialesController(),
+            VehiculosController::class => $this->createVehiculosController($request),
             default => new $controllerClass(),
         };
     }
@@ -198,5 +210,28 @@ final class Router
         $service = new VentasService($request, $authContext);
 
         return new VentasController($request, $service);
+    }
+
+    private function createPersonasController(Request $request): PersonasController
+    {
+        $authContext = new AuthContext();
+        $service = new PersonasService($request, $authContext);
+
+        return new PersonasController($request, $service);
+    }
+
+    private function createDatosInicialesController(): DatosInicialesController
+    {
+        $service = new DatosInicialesService();
+
+        return new DatosInicialesController($service);
+    }
+
+    private function createVehiculosController(Request $request): VehiculosController
+    {
+        $authContext = new AuthContext();
+        $service = new VehiculosService($request, $authContext);
+
+        return new VehiculosController($request, $service);
     }
 }
