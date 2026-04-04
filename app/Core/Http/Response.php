@@ -3,11 +3,15 @@ declare(strict_types=1);
 
 namespace App\Core\Http;
 
-final class Response
+ 
+class Response
 {
+    private int $status = 200;
+    private array $data = [];
+
     public static function ok(mixed $data, int $status = 200): void
     {
-        self::json([
+        self::sendJsonResponse([ 
             'ok' => true,
             'data' => $data,
             'error' => null,
@@ -16,7 +20,8 @@ final class Response
 
     public static function fail(string $code, string $message, int $status = 400, ?array $meta = null): void
     {
-        self::json([
+ 
+        self::sendJsonResponse([ 
             'ok' => false,
             'data' => null,
             'error' => [
@@ -34,7 +39,7 @@ final class Response
         exit;
     }
 
-    private static function json(array $payload, int $status): void
+    private static function sendJsonResponse(array $payload, int $status): void
     {
         http_response_code($status);
         self::cors();
@@ -49,5 +54,27 @@ final class Response
         header('Access-Control-Allow-Origin: *');
         header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
         header('Access-Control-Allow-Headers: Content-Type, Authorization');
+    }
+
+    // Instance methods for chaining
+    public function status(int $status): self
+    {
+        $this->status = $status;
+        return $this;
+    }
+
+    public function json(array $data): self
+    {
+        $this->data = $data;
+        return $this;
+    }
+
+    public function send(): void
+    {
+        http_response_code($this->status);
+        self::cors();
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode($this->data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        exit;
     }
 }

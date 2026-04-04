@@ -21,10 +21,20 @@ jds-backend-app-2026/
 │       │   ├── AuthContext.php
 │       │   └── Services/
 │       │       └── AuthService.php ✅ Compatible con legacy
+│       ├── Carwash/
+│       │   ├── CarwashController.php ✅ Actualizado: nueva Response API
+│       │   └── Services/
+│       │       └── CarwashService.php ✅ Compatible con legacy
+│       ├── Inventario/
+│       │   ├── InventarioController.php ✅ Actualizado: nueva Response API
+│       │   └── Services/
+│       │       └── InventarioService.php ✅ Compatible con legacy
 │       └── (otros módulos)
 │
 ├── config/
-│   ├── actions.php               ✅ NUEVO: Mapeo de acciones legacy
+│   ├── actions.php               ✅ NUEVO: Mapeo de acciones legacy (Auth)
+│   ├── carwash-actions.php       ✅ NUEVO: Mapeo de acciones legacy (Carwash)
+│   ├── inventario-actions.php    ✅ NUEVO: Mapeo de acciones legacy (Inventario)
 │   └── (otras configuraciones)
 │
 ├── public/
@@ -33,7 +43,11 @@ jds-backend-app-2026/
 ├── tests/                        ✅ NUEVO: Estructura de tests
 │   ├── Unit/
 │   │   ├── AuthParametersTest.php (✓ 3/3 tests pasando)
-│   │   └── AuthServiceTest.php   (✓ 5/5 tests pasando)
+│   │   ├── AuthServiceTest.php   (✓ 5/5 tests pasando)
+│   │   ├── CarwashParametersTest.php (✓ 3/3 tests pasando)
+│   │   ├── CarwashServiceTest.php   (✓ 5/5 tests pasando)
+│   │   ├── InventarioParametersTest.php (✓ 3/3 tests pasando)
+│   │   ├── InventarioServiceTest.php   (✓ 5/5 tests pasando)
 │   ├── Integration/
 │   │   └── DatabaseConnectionTest.php
 │   ├── run-tests.php             ✅ NUEVO: Test runner
@@ -44,7 +58,14 @@ jds-backend-app-2026/
 │   │   ├── 01-SPECS.md
 │   │   ├── 02-IMPLEMENTATION.md
 │   │   └── 03-ACCEPTANCE_CRITERIA.md
-│   └── README.md
+│   ├── 02-carwash-legacy-routing/
+│   │   ├── 01-SPECS.md
+│   │   ├── 02-IMPLEMENTATION.md
+│   │   └── 03-ACCEPTANCE_CRITERIA.md
+│   └── 03-inventario-legacy-routing/
+│       ├── 01-SPECS.md
+│       ├── 02-IMPLEMENTATION.md
+│       └── 03-ACCEPTANCE_CRITERIA.md
 │
 └── .git/                         ✅ Inicializado con GitHub remote
 ```

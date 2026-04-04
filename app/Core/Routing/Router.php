@@ -5,6 +5,13 @@ namespace App\Core\Routing;
 
 use App\Core\Http\Request;
 use App\Core\Http\Response;
+use App\Modules\Admin\AdminController;
+use App\Modules\Admin\Services\AdminService;
+use App\Modules\Auth\AuthContext;
+use App\Modules\Carwash\CarwashController;
+use App\Modules\Carwash\Services\CarwashService;
+use App\Modules\Inventario\InventarioController;
+use App\Modules\Inventario\Services\InventarioService;
 
 final class Router
 {
@@ -133,6 +140,45 @@ final class Router
             );
         }
 
+        if (is_array($handler)) {
+            return $this->instantiateAndCall($handler, $request);
+        }
+
         return $handler($request);
+    }
+
+    private function instantiateAndCall(array $handler, Request $request): mixed
+    {
+        [$class, $method] = $handler;
+
+        $instance = match ($class) {
+            AdminController::class => $this->createAdminController($request),
+            CarwashController::class => $this->createCarwashController($request),
+            InventarioController::class => $this->createInventarioController($request),
+            default => throw new \Exception("No factory for {$class}"),
+        };
+
+        return $instance->$method();
+    }
+
+    private function createAdminController(Request $request): AdminController
+    {
+        $authContext = new AuthContext();
+        $service = new AdminService($request, $authContext);
+        return new AdminController($request, $service);
+    }
+
+    private function createCarwashController(Request $request): CarwashController
+    {
+        $authContext = new AuthContext();
+        $service = new CarwashService($request, $authContext);
+        return new CarwashController($request, $service);
+    }
+
+    private function createInventarioController(Request $request): InventarioController
+    {
+        $authContext = new AuthContext();
+        $service = new InventarioService($request, $authContext);
+        return new InventarioController($request, $service);
     }
 }
