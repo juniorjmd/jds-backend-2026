@@ -7,6 +7,7 @@ use App\Core\Http\Request;
 
 final class Routes
 {
+
     private static ?array $map = null;
 
     /** @return array<string, callable> */
@@ -33,7 +34,7 @@ final class Routes
             return require __DIR__ . '/../../config/inventario-actions.php';
         })();
 
-        $internalActions = [
+        $internalActions = [ 
             'PING' => function (Request $req) {
                 return [
                     'pong' => true,
@@ -41,6 +42,7 @@ final class Routes
                     'time' => date('c'),
                 ];
             },
+ 
         ];
 
         self::$map = array_merge(
@@ -51,6 +53,6 @@ final class Routes
             is_array($inventarioActions) ? $inventarioActions : []
         );
 
-        return self::$map;
+        return self::$map; 
     }
 }
