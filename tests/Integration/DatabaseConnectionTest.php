@@ -15,6 +15,10 @@ $dotenv->load();
 
 echo "=== TEST DE CONEXIÓN A BD ===\n";
 
+$host = $_ENV['DB_HOST'] ?? '127.0.0.1';
+$port = $_ENV['DB_PORT'] ?? '3306';
+$database = $_ENV['DB_DATABASE'] ?? '';
+
 try {
     $pdo = Connection::get();
     echo "✓ Conexión exitosa a la BD\n";
@@ -39,7 +43,10 @@ try {
     // Verificar procedimiento almacenado
     try {
         // Esto solo verifica que el procedimiento existe
-        $stmt = $pdo->query("SELECT ROUTINE_NAME FROM information_schema.ROUTINES WHERE ROUTINE_SCHEMA = 'dlausr_car_wash' AND ROUTINE_NAME = 'sp_login'");
+        $stmt = $pdo->query(
+            "SELECT ROUTINE_NAME FROM information_schema.ROUTINES " .
+            "WHERE ROUTINE_SCHEMA = " . $pdo->quote($database) . " AND ROUTINE_NAME = 'sp_login'"
+        );
         if ($stmt->rowCount() > 0) {
             echo "✓ Procedimiento 'sp_login' existe\n";
         } else {
@@ -55,9 +62,8 @@ try {
     echo "✗ Error de conexión:\n";
     echo "  " . $e->getMessage() . "\n";
     echo "\n⚠️  VERIFIQUE:\n";
-    echo "  - Host: mysql.us.stackcp.com\n";
-    echo "  - Port: 42363\n";
-    echo "  - Usuario: dlausr_car_wash_web_2026\n";
-    echo "  - Base de datos: dlausr_car_wash\n";
+    echo "  - Host: {$host}\n";
+    echo "  - Port: {$port}\n";
+    echo "  - Base de datos: {$database}\n";
     exit(1);
 }
