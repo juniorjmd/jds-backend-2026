@@ -7,12 +7,25 @@ use App\Core\Http\Request;
 
 final class Routes
 {
+    private static ?array $map = null;
+
     /** @return array<string, callable> */
     public static function map(): array
     {
-        $legacyActions = require __DIR__ . '/../../config/actions.php';
+        if (self::$map !== null) {
+            return self::$map;
+        }
 
-        return array_merge([
+        // Cargar archivos de configuración de acciones legacy
+        $legacyActions = (static function() {
+            return require __DIR__ . '/../../config/actions.php';
+        })();
+
+        $carwashActions = (static function() {
+            return require __DIR__ . '/../../config/carwash-actions.php';
+        })();
+
+        $internalActions = [
             'PING' => function (Request $req) {
                 return [
                     'pong' => true,
@@ -20,6 +33,14 @@ final class Routes
                     'time' => date('c'),
                 ];
             },
-        ], $legacyActions ?? []);
+        ];
+
+        self::$map = array_merge(
+            $internalActions,
+            is_array($legacyActions) ? $legacyActions : [],
+            is_array($carwashActions) ? $carwashActions : []
+        );
+
+        return self::$map;
     }
 }
