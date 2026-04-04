@@ -7,7 +7,6 @@ use App\Core\Http\Request;
 
 final class Routes
 {
-
     private static ?array $map = null;
 
     /** @return array<string, callable> */
@@ -17,7 +16,6 @@ final class Routes
             return self::$map;
         }
 
-        // Cargar archivos de configuración de acciones legacy
         $legacyActions = (static function() {
             return require __DIR__ . '/../../config/actions.php';
         })();
@@ -34,15 +32,34 @@ final class Routes
             return require __DIR__ . '/../../config/inventario-actions.php';
         })();
 
-        $internalActions = [ 
-            'PING' => function (Request $req) {
+        $documentosActions = (static function() {
+            return require __DIR__ . '/../../config/documentos-actions.php';
+        })();
+
+        $ventasActions = (static function() {
+            return require __DIR__ . '/../../config/ventas-actions.php';
+        })();
+
+        $personasActions = (static function() {
+            return require __DIR__ . '/../../config/personas-actions.php';
+        })();
+
+        $datosInicialesActions = (static function() {
+            return require __DIR__ . '/../../config/datosiniciales-actions.php';
+        })();
+
+        $vehiculosActions = (static function() {
+            return require __DIR__ . '/../../config/vehiculos-actions.php';
+        })();
+
+        $internalActions = [
+            'PING' => function (Request $request) {
                 return [
                     'pong' => true,
-                    'action' => $req->action(),
+                    'action' => $request->action(),
                     'time' => date('c'),
                 ];
             },
- 
         ];
 
         self::$map = array_merge(
@@ -50,9 +67,14 @@ final class Routes
             is_array($legacyActions) ? $legacyActions : [],
             is_array($adminActions) ? $adminActions : [],
             is_array($carwashActions) ? $carwashActions : [],
-            is_array($inventarioActions) ? $inventarioActions : []
+            is_array($inventarioActions) ? $inventarioActions : [],
+            is_array($documentosActions) ? $documentosActions : [],
+            is_array($ventasActions) ? $ventasActions : [],
+            is_array($personasActions) ? $personasActions : [],
+            is_array($datosInicialesActions) ? $datosInicialesActions : [],
+            is_array($vehiculosActions) ? $vehiculosActions : []
         );
 
-        return self::$map; 
+        return self::$map;
     }
 }

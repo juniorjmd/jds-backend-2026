@@ -1,85 +1,110 @@
 <?php
-declare(strict_types=1);
+require_once __DIR__ . '/../../vendor/autoload.php';
 
-namespace Tests\Unit;
-
-use PHPUnit\Framework\TestCase;
 use App\Core\Http\Request;
 
-class AdminParametersTest extends TestCase
+class AdminParametersTest
 {
-    public function testLegacyParameterParsing()
+    private int $passCount = 0;
+    private int $failCount = 0;
+
+    public function run(): void
     {
-        // Test that parameters with underscore prefix are handled correctly
-        $request = $this->createMock(Request::class);
+        echo "\n========== ADMIN PARAMETERS TEST ==========\n\n";
 
-        // Mock the input method to return legacy parameters
-        $request->method('input')
-            ->willReturnCallback(function ($key, $default = null) {
-                $legacyParams = [
-                    'estado' => 'A',
-                    'login' => 'testuser',
-                    'nombre1' => 'Juan',
-                    'apellido1' => 'Pérez',
-                    'mail' => 'juan@example.com',
-                    'id_perfil' => '1',
-                    'id' => '123'
-                ];
+        $this->testLegacyParameterParsing();
+        $this->testParameterDefaults();
+        $this->testActionParameter();
 
-                return $legacyParams[$key] ?? $default;
-            });
-
-        // Test getUsers parameters
-        $estado = $request->input('estado', 'A');
-        $this->assertEquals('A', $estado);
-
-        // Test createUser parameters
-        $login = $request->input('login', '');
-        $nombre1 = $request->input('nombre1', '');
-        $apellido1 = $request->input('apellido1', '');
-        $mail = $request->input('mail', '');
-
-        $this->assertEquals('testuser', $login);
-        $this->assertEquals('Juan', $nombre1);
-        $this->assertEquals('Pérez', $apellido1);
-        $this->assertEquals('juan@example.com', $mail);
-
-        // Test updateUser parameters
-        $userId = (int) $request->input('id', 0);
-        $this->assertEquals(123, $userId);
-
-        $perfilId = (int) $request->input('id_perfil', 1);
-        $this->assertEquals(1, $perfilId);
+        $this->printSummary();
+        exit($this->failCount === 0 ? 0 : 1);
     }
 
-    public function testParameterDefaults()
+    private function testLegacyParameterParsing(): void
     {
-        $request = $this->createMock(Request::class);
+        echo "TEST 1: Admin legacy parameters are parsed... ";
 
-        // Mock empty input
-        $request->method('input')
-            ->willReturn('');
+        try {
+            $request = new Request('POST', [], [
+                '_estado' => 'A',
+                '_login' => 'testuser',
+                '_nombre1' => 'Juan',
+                '_apellido1' => 'Pérez',
+                '_mail' => 'juan@example.com',
+                '_id_perfil' => '1',
+                '_id' => '123'
+            ], [], []);
 
-        // Test defaults
-        $estado = $request->input('estado', 'A');
-        $this->assertEquals('A', $estado);
+            if ($request->input('estado', 'A') !== 'A') {
+                throw new \Exception('estado mismatch');
+            }
 
-        $perfilId = (int) $request->input('id_perfil', 1);
-        $this->assertEquals(1, $perfilId);
+            if ($request->input('login', '') !== 'testuser') {
+                throw new \Exception('login mismatch');
+            }
 
-        $userId = (int) $request->input('id', 0);
-        $this->assertEquals(0, $userId);
+            if ((int) $request->input('id', 0) !== 123) {
+                throw new \Exception('id mismatch');
+            }
+
+            echo "✓ PASSED\n";
+            $this->passCount++;
+        } catch (\Exception $e) {
+            echo "✗ FAILED: {$e->getMessage()}\n";
+            $this->failCount++;
+        }
     }
 
-    public function testActionParameter()
+    private function testParameterDefaults(): void
     {
-        $request = $this->createMock(Request::class);
+        echo "TEST 2: Admin parameter defaults are preserved... ";
 
-        // Mock action method
-        $request->method('action')
-            ->willReturn('OBTENER_USUARIOS');
+        try {
+            $request = new Request('POST', [], [], [], []);
 
-        $action = $request->action();
-        $this->assertEquals('OBTENER_USUARIOS', $action);
+            if ($request->input('estado', 'A') !== 'A') {
+                throw new \Exception('estado default mismatch');
+            }
+
+            if ((int) $request->input('id_perfil', 1) !== 1) {
+                throw new \Exception('id_perfil default mismatch');
+            }
+
+            echo "✓ PASSED\n";
+            $this->passCount++;
+        } catch (\Exception $e) {
+            echo "✗ FAILED: {$e->getMessage()}\n";
+            $this->failCount++;
+        }
+    }
+
+    private function testActionParameter(): void
+    {
+        echo "TEST 3: Admin action is detected... ";
+
+        try {
+            $request = new Request('POST', [], ['action' => 'OBTENER_USUARIOS'], [], []);
+
+            if ($request->action() !== 'OBTENER_USUARIOS') {
+                throw new \Exception('action mismatch');
+            }
+
+            echo "✓ PASSED\n";
+            $this->passCount++;
+        } catch (\Exception $e) {
+            echo "✗ FAILED: {$e->getMessage()}\n";
+            $this->failCount++;
+        }
+    }
+
+    private function printSummary(): void
+    {
+        $total = $this->passCount + $this->failCount;
+        echo "\n========== RESULT ==========\n";
+        echo "PASSED: {$this->passCount}/{$total}\n";
+        echo "FAILED: {$this->failCount}/{$total}\n";
+        echo "===========================\n\n";
     }
 }
+
+(new AdminParametersTest())->run();

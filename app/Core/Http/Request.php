@@ -55,11 +55,13 @@ final class Request
         }
 
     public function input(string $key, mixed $default = null): mixed
-        {
-            return $this->body[$key]
-                ?? $this->query[$key]
-                ?? $default;
-        }
+    {
+        return $this->body[$key]
+            ?? $this->query[$key]
+            ?? $this->body['_' . $key]
+            ?? $this->query['_' . $key]
+            ?? $default;
+    }
 
     public function bearerToken(): ?string
     {

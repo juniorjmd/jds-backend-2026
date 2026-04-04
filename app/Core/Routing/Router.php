@@ -10,8 +10,18 @@ use App\Modules\Admin\Services\AdminService;
 use App\Modules\Auth\AuthContext;
 use App\Modules\Carwash\CarwashController;
 use App\Modules\Carwash\Services\CarwashService;
+use App\Modules\Documentos\DocumentosController;
+use App\Modules\Documentos\Services\DocumentosService;
+use App\Modules\DatosIniciales\DatosInicialesController;
+use App\Modules\DatosIniciales\Services\DatosInicialesService;
 use App\Modules\Inventario\InventarioController;
 use App\Modules\Inventario\Services\InventarioService;
+use App\Modules\Personas\PersonasController;
+use App\Modules\Personas\Services\PersonasService;
+use App\Modules\Ventas\VentasController;
+use App\Modules\Ventas\Services\VentasService;
+use App\Modules\Vehiculos\VehiculosController;
+use App\Modules\Vehiculos\Services\VehiculosService;
 
 final class Router
 {
@@ -21,25 +31,15 @@ final class Router
 
     public function dispatch(Request $request): mixed
     {
-        $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+        $path = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
 
         if (!$path) {
             Response::fail('INVALID_ROUTE', 'Ruta inválida', 404);
         }
 
-        /*
-         * |--------------------------------------------------------------------------
-         * | Remover base path del proyecto
-         * |--------------------------------------------------------------------------
-         */
-
         $path = strtolower($path);
-
         $segments = explode('/', trim($path, '/'));
-        
-        $apiIndex = array_search('api', $segments);
-
-        // Si no hay /api, ir directo a Legacy Action Router
+        $apiIndex = array_search('api', $segments, true);
         if ($apiIndex === false) {
             return $this->dispatchLegacyAction($request);
         }
@@ -75,7 +75,7 @@ final class Router
                 );
             }
 
-            $controller = new $controllerClass();
+            $controller = $this->createController($controllerClass, $request);
 
             if (!method_exists($controller, $method)) {
                 Response::fail(
@@ -100,7 +100,7 @@ final class Router
 
             if (class_exists($controllerClass)) {
 
-                $controller = new $controllerClass();
+                $controller = $this->createController($controllerClass, $request);
 
                 if (method_exists($controller, 'index')) {
                     return $controller->index($request);
@@ -114,12 +114,6 @@ final class Router
 
     private function dispatchLegacyAction(Request $request): mixed
     {
-        /*
-        |--------------------------------------------------------------------------
-        | Legacy Action Router
-        |--------------------------------------------------------------------------
-        */
-
         $action = $request->action();
 
         if (!$action) {
@@ -155,6 +149,11 @@ final class Router
             AdminController::class => $this->createAdminController($request),
             CarwashController::class => $this->createCarwashController($request),
             InventarioController::class => $this->createInventarioController($request),
+            DocumentosController::class => $this->createDocumentosController($request),
+            VentasController::class => $this->createVentasController($request),
+            PersonasController::class => $this->createPersonasController($request),
+            DatosInicialesController::class => $this->createDatosInicialesController(),
+            VehiculosController::class => $this->createVehiculosController($request),
             default => throw new \Exception("No factory for {$class}"),
         };
 
@@ -180,5 +179,59 @@ final class Router
         $authContext = new AuthContext();
         $service = new InventarioService($request, $authContext);
         return new InventarioController($request, $service);
+    }
+
+    private function createController(string $controllerClass, Request $request): object
+    {
+        return match ($controllerClass) {
+            AdminController::class => $this->createAdminController($request),
+            CarwashController::class => $this->createCarwashController($request),
+            InventarioController::class => $this->createInventarioController($request),
+            DocumentosController::class => $this->createDocumentosController($request),
+            VentasController::class => $this->createVentasController($request),
+            PersonasController::class => $this->createPersonasController($request),
+            DatosInicialesController::class => $this->createDatosInicialesController(),
+            VehiculosController::class => $this->createVehiculosController($request),
+            default => new $controllerClass(),
+        };
+    }
+
+    private function createDocumentosController(Request $request): DocumentosController
+    {
+        $authContext = new AuthContext();
+        $service = new DocumentosService($request, $authContext);
+
+        return new DocumentosController($request, $service);
+    }
+
+    private function createVentasController(Request $request): VentasController
+    {
+        $authContext = new AuthContext();
+        $service = new VentasService($request, $authContext);
+
+        return new VentasController($request, $service);
+    }
+
+    private function createPersonasController(Request $request): PersonasController
+    {
+        $authContext = new AuthContext();
+        $service = new PersonasService($request, $authContext);
+
+        return new PersonasController($request, $service);
+    }
+
+    private function createDatosInicialesController(): DatosInicialesController
+    {
+        $service = new DatosInicialesService();
+
+        return new DatosInicialesController($service);
+    }
+
+    private function createVehiculosController(Request $request): VehiculosController
+    {
+        $authContext = new AuthContext();
+        $service = new VehiculosService($request, $authContext);
+
+        return new VehiculosController($request, $service);
     }
 }

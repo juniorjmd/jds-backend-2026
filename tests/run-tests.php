@@ -39,10 +39,8 @@ foreach ($testSuites as $suiteName => $suitePath) {
     foreach ($testFiles as $testFile) {
         $testName = basename($testFile, '.php');
         echo "  ▶ Running $testName... ";
-        
-        // Execute test file in a subprocess to avoid conflicts
-        $output = shell_exec('php ' . escapeshellarg($testFile) . ' 2>&1');
-        $exitCode = (int)shell_exec('php ' . escapeshellarg($testFile) . ' >/dev/null 2>&1; echo $?');
+
+        [$exitCode, $output] = runPhpTestFile($testFile);
         
         if ($exitCode === 0) {
             echo "✓ PASSED\n";
@@ -82,3 +80,29 @@ echo "╚" . str_repeat("═", 78) . "╝\n\n";
 
 // Exit with appropriate code
 exit($totalFailed > 0 ? 1 : 0);
+
+function runPhpTestFile(string $testFile): array
+{
+    $command = 'php ' . escapeshellarg($testFile);
+    $descriptorSpec = [
+        0 => ['pipe', 'r'],
+        1 => ['pipe', 'w'],
+        2 => ['pipe', 'w'],
+    ];
+
+    $process = proc_open($command, $descriptorSpec, $pipes);
+
+    if (!is_resource($process)) {
+        return [1, "No fue posible ejecutar el proceso para $testFile"];
+    }
+
+    fclose($pipes[0]);
+    $stdout = stream_get_contents($pipes[1]);
+    $stderr = stream_get_contents($pipes[2]);
+    fclose($pipes[1]);
+    fclose($pipes[2]);
+
+    $exitCode = proc_close($process);
+
+    return [$exitCode, $stdout . $stderr];
+}
