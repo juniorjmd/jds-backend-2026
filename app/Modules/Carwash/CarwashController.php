@@ -11,16 +11,13 @@ class CarwashController
 {
     private Request $request;
     private CarwashService $service;
-    private Response $response;
 
     public function __construct(
         Request $request,
-        CarwashService $service,
-        Response $response
+        CarwashService $service
     ) {
         $this->request = $request;
         $this->service = $service;
-        $this->response = $response;
     }
 
     /**
@@ -35,15 +32,9 @@ class CarwashController
                 initialAmount: (float) $this->request->input('caja_monto_inicial', 0)
             );
 
-            $this->response
-                ->status(200)
-                ->json(['success' => true, 'data' => $result])
-                ->send();
+            Response::ok($result);
         } catch (\Exception $e) {
-            $this->response
-                ->status(400)
-                ->json(['success' => false, 'error' => $e->getMessage()])
-                ->send();
+            Response::fail('OPEN_BOX_ERROR', $e->getMessage());
         }
     }
 
@@ -55,15 +46,9 @@ class CarwashController
         try {
             $result = $this->service->closeBox();
 
-            $this->response
-                ->status(200)
-                ->json(['success' => true, 'data' => $result])
-                ->send();
+            Response::ok($result);
         } catch (\Exception $e) {
-            $this->response
-                ->status(400)
-                ->json(['success' => false, 'error' => $e->getMessage()])
-                ->send();
+            Response::fail('CLOSE_BOX_ERROR', $e->getMessage());
         }
     }
 
@@ -75,15 +60,9 @@ class CarwashController
         try {
             $result = $this->service->closePartialBox();
 
-            $this->response
-                ->status(200)
-                ->json(['success' => true, 'data' => $result])
-                ->send();
+            Response::ok($result);
         } catch (\Exception $e) {
-            $this->response
-                ->status(400)
-                ->json(['success' => false, 'error' => $e->getMessage()])
-                ->send();
+            Response::fail('CLOSE_PARTIAL_BOX_ERROR', $e->getMessage());
         }
     }
 
@@ -95,15 +74,9 @@ class CarwashController
         try {
             $result = $this->service->getBoxSummary();
 
-            $this->response
-                ->status(200)
-                ->json(['success' => true, 'data' => $result])
-                ->send();
+            Response::ok($result);
         } catch (\Exception $e) {
-            $this->response
-                ->status(400)
-                ->json(['success' => false, 'error' => $e->getMessage()])
-                ->send();
+            Response::fail('GET_BOX_SUMMARY_ERROR', $e->getMessage());
         }
     }
 }

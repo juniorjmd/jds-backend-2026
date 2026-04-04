@@ -27,17 +27,19 @@ class CarwashService
      */
     public function openBox(string $motivo = '', float $initialAmount = 0): array
     {
-        $usuario = $this->authContext->user();
+        $authResult = $this->authContext->resolve($this->request);
         
-        if (!$usuario) {
+        if (!($authResult['success'] ?? false)) {
             throw new \Exception('Usuario no autenticado');
         }
+        
+        $usuario = $authResult['compact_user'];
 
         // TODO: Implementar lógica con BD cuando esté disponible
         // Por ahora retorna dato simulado para tests
         return [
             'caja_id' => 1,
-            'usuario' => $usuario['USUARIO'] ?? 'anonymous',
+            'usuario' => $usuario['nombre'] ?? 'anonymous',
             'estado' => 'ABIERTA',
             'fecha_hora_apertura' => date('Y-m-d H:i:s'),
             'monto_inicial' => $initialAmount,

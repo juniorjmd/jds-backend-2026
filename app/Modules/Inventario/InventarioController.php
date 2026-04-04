@@ -11,16 +11,13 @@ class InventarioController
 {
     private Request $request;
     private InventarioService $service;
-    private Response $response;
 
     public function __construct(
         Request $request,
-        InventarioService $service,
-        Response $response
+        InventarioService $service
     ) {
         $this->request = $request;
         $this->service = $service;
-        $this->response = $response;
     }
 
     /**
@@ -37,15 +34,9 @@ class InventarioController
                 movementType: $this->request->input('tipo_movimiento', 'salida')
             );
 
-            $this->response
-                ->status(200)
-                ->json(['success' => true, 'data' => $result])
-                ->send();
+            Response::ok($result);
         } catch (\Exception $e) {
-            $this->response
-                ->status(400)
-                ->json(['success' => false, 'error' => $e->getMessage()])
-                ->send();
+            Response::fail('RECORD_STOCK_MOVE_ERROR', $e->getMessage());
         }
     }
 
@@ -62,15 +53,9 @@ class InventarioController
                 quantity: (float) $this->request->input('cantidad', 0)
             );
 
-            $this->response
-                ->status(200)
-                ->json(['success' => true, 'data' => $result])
-                ->send();
+            Response::ok($result);
         } catch (\Exception $e) {
-            $this->response
-                ->status(400)
-                ->json(['success' => false, 'error' => $e->getMessage()])
-                ->send();
+            Response::fail('RECORD_STOCK_MOVE_DEVOLUCION_ERROR', $e->getMessage());
         }
     }
 
@@ -85,15 +70,9 @@ class InventarioController
                 ingressId: (int) $this->request->input('id_ingreso', 0)
             );
 
-            $this->response
-                ->status(200)
-                ->json(['success' => true, 'data' => $result])
-                ->send();
+            Response::ok($result);
         } catch (\Exception $e) {
-            $this->response
-                ->status(400)
-                ->json(['success' => false, 'error' => $e->getMessage()])
-                ->send();
+            Response::fail('CANCEL_PRECHART_ERROR', $e->getMessage());
         }
     }
 
@@ -114,15 +93,9 @@ class InventarioController
                 ingressId: (int) $this->request->input('id_ingreso', 0)
             );
 
-            $this->response
-                ->status(200)
-                ->json(['success' => true, 'data' => $result])
-                ->send();
+            Response::ok($result);
         } catch (\Exception $e) {
-            $this->response
-                ->status(400)
-                ->json(['success' => false, 'error' => $e->getMessage()])
-                ->send();
+            Response::fail('SAVE_PRECHART_ERROR', $e->getMessage());
         }
     }
 }
