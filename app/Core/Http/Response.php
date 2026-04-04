@@ -10,7 +10,7 @@ class Response
 
     public static function ok(mixed $data, int $status = 200): void
     {
-        self::json([
+        self::sendJsonResponse([
             'ok' => true,
             'data' => $data,
             'error' => null,
@@ -19,7 +19,7 @@ class Response
 
     public static function fail(string $code, string $message, int $status = 400, ?array $meta = null): void
     {
-        self::json([
+        self::sendJsonResponse([
             'ok' => false,
             'data' => null,
             'error' => [
@@ -37,7 +37,7 @@ class Response
         exit;
     }
 
-    private static function json(array $payload, int $status): void
+    private static function sendJsonResponse(array $payload, int $status): void
     {
         http_response_code($status);
         self::cors();
