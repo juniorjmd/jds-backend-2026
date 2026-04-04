@@ -67,7 +67,16 @@ class InventarioServiceTest
                 'recordStockMove',
                 'recordStockMoveDevolución',
                 'cancelPrechart',
-                'savePrechart'
+                'savePrechart',
+                'createDiscountActivity',
+                'createProduct',
+                'updateProduct',
+                'getAllProducts',
+                'getProductsByName',
+                'getProductById',
+                'getProductExistenceByDocument',
+                'getProductByIdOrBarcode',
+                'returnProductSale',
             ];
 
             foreach ($methods as $method) {
@@ -99,6 +108,10 @@ class InventarioServiceTest
 
             if (!is_array($result)) {
                 throw new \Exception("recordStockMove did not return array");
+            }
+
+            if (($result['error'] ?? null) !== 'ok') {
+                throw new \Exception("Response missing error=ok");
             }
 
             if (!array_key_exists('stock_move_id', $result)) {
@@ -199,7 +212,16 @@ class InventarioServiceTest
                 ['recordStockMove', [0, 0, 0]],
                 ['recordStockMoveDevolución', [0, 0, 0]],
                 ['cancelPrechart', [0]],
-                ['savePrechart', [[], 0]]
+                ['savePrechart', [[], 0]],
+                ['createDiscountActivity', [['nombre' => 'Promo']]],
+                ['createProduct', [['nombre' => 'Producto']]],
+                ['updateProduct', [['nombre' => 'Producto']]],
+                ['getAllProducts', [[]]],
+                ['getProductsByName', ['shampoo', []]],
+                ['getProductById', ['101']],
+                ['getProductExistenceByDocument', ['101', 1]],
+                ['getProductByIdOrBarcode', ['770101']],
+                ['returnProductSale', [['idProducto' => 101]]],
             ];
 
             foreach ($methods as [$method, $args]) {

@@ -34,9 +34,9 @@ class InventarioController
                 movementType: $this->request->input('tipo_movimiento', 'salida')
             );
 
-            Response::ok($result);
+            $this->sendLegacyResponse($result);
         } catch (\Exception $e) {
-            Response::fail('RECORD_STOCK_MOVE_ERROR', $e->getMessage());
+            $this->sendLegacyError($e->getMessage());
         }
     }
 
@@ -53,9 +53,9 @@ class InventarioController
                 quantity: (float) $this->request->input('cantidad', 0)
             );
 
-            Response::ok($result);
+            $this->sendLegacyResponse($result);
         } catch (\Exception $e) {
-            Response::fail('RECORD_STOCK_MOVE_DEVOLUCION_ERROR', $e->getMessage());
+            $this->sendLegacyError($e->getMessage());
         }
     }
 
@@ -67,12 +67,13 @@ class InventarioController
     {
         try {
             $result = $this->service->cancelPrechart(
-                ingressId: (int) $this->request->input('id_ingreso', 0)
+                ingressId: (int) $this->request->input('id_ingreso', 0),
+                warehouseId: (int) $this->request->input('bodega_ingreso', 0)
             );
 
-            Response::ok($result);
+            $this->sendLegacyResponse($result);
         } catch (\Exception $e) {
-            Response::fail('CANCEL_PRECHART_ERROR', $e->getMessage());
+            $this->sendLegacyError($e->getMessage());
         }
     }
 
@@ -90,12 +91,155 @@ class InventarioController
 
             $result = $this->service->savePrechart(
                 items: $listado,
-                ingressId: (int) $this->request->input('id_ingreso', 0)
+                ingressId: (int) $this->request->input('id_ingreso', 0),
+                ingressPayload: $this->normalizeIngreso($this->request->input('ingreso', []))
             );
 
-            Response::ok($result);
+            $this->sendLegacyResponse($result);
         } catch (\Exception $e) {
-            Response::fail('SAVE_PRECHART_ERROR', $e->getMessage());
+            $this->sendLegacyError($e->getMessage());
         }
+    }
+
+    public function createDiscountActivity(): void
+    {
+        try {
+            $this->sendLegacyResponse(
+                $this->service->createDiscountActivity(
+                    $this->request->input('datosInsert', [])
+                )
+            );
+        } catch (\Exception $e) {
+            $this->sendLegacyError($e->getMessage());
+        }
+    }
+
+    public function createProduct(): void
+    {
+        try {
+            $this->sendLegacyResponse(
+                $this->service->createProduct(
+                    $this->normalizeProducto($this->request->input('producto_enviado', []))
+                )
+            );
+        } catch (\Exception $e) {
+            $this->sendLegacyError($e->getMessage());
+        }
+    }
+
+    public function updateProduct(): void
+    {
+        try {
+            $this->sendLegacyResponse(
+                $this->service->updateProduct(
+                    $this->normalizeProducto($this->request->input('producto_enviado', []))
+                )
+            );
+        } catch (\Exception $e) {
+            $this->sendLegacyError($e->getMessage());
+        }
+    }
+
+    public function getAllProducts(): void
+    {
+        try {
+            $this->sendLegacyResponse(
+                $this->service->getAllProducts($this->normalizeLimit($this->request->input('limit', [])))
+            );
+        } catch (\Exception $e) {
+            $this->sendLegacyError($e->getMessage());
+        }
+    }
+
+    public function getProductsByName(): void
+    {
+        try {
+            $this->sendLegacyResponse(
+                $this->service->getProductsByName(
+                    searchText: (string) $this->request->input('dato_busqueda', ''),
+                    limit: $this->normalizeLimit($this->request->input('limit', []))
+                )
+            );
+        } catch (\Exception $e) {
+            $this->sendLegacyError($e->getMessage());
+        }
+    }
+
+    public function getProductById(): void
+    {
+        try {
+            $this->sendLegacyResponse(
+                $this->service->getProductById((string) $this->request->input('id_producto', ''))
+            );
+        } catch (\Exception $e) {
+            $this->sendLegacyError($e->getMessage());
+        }
+    }
+
+    public function getProductExistenceByDocument(): void
+    {
+        try {
+            $this->sendLegacyResponse(
+                $this->service->getProductExistenceByDocument(
+                    productId: (string) $this->request->input('id_producto', ''),
+                    documentOrder: (int) $this->request->input('orden_documento', 0)
+                )
+            );
+        } catch (\Exception $e) {
+            $this->sendLegacyError($e->getMessage());
+        }
+    }
+
+    public function getProductByIdOrBarcode(): void
+    {
+        try {
+            $this->sendLegacyResponse(
+                $this->service->getProductByIdOrBarcode((string) $this->request->input('id_producto', ''))
+            );
+        } catch (\Exception $e) {
+            $this->sendLegacyError($e->getMessage());
+        }
+    }
+
+    public function returnProductSale(): void
+    {
+        try {
+            $this->sendLegacyResponse(
+                $this->service->returnProductSale($this->request->input('producto_enviado', []))
+            );
+        } catch (\Exception $e) {
+            $this->sendLegacyError($e->getMessage());
+        }
+    }
+
+    private function normalizeIngreso(mixed $ingreso): array
+    {
+        return is_array($ingreso) ? $ingreso : [];
+    }
+
+    private function normalizeProducto(mixed $producto): array
+    {
+        return is_array($producto) ? $producto : [];
+    }
+
+    private function normalizeLimit(mixed $limit): array
+    {
+        return is_array($limit) ? $limit : [];
+    }
+
+    private function sendLegacyResponse(array $payload): void
+    {
+        (new Response())
+            ->status(200)
+            ->json($payload)
+            ->send();
+    }
+
+    private function sendLegacyError(string $message): void
+    {
+        (new Response())
+            ->status(500)
+            ->json(['error' => $message])
+            ->send();
     }
 }

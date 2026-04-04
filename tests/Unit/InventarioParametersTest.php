@@ -44,6 +44,15 @@ class InventarioParametersTest
                 'STOCK_MOVE_DEVOLUCION',
                 'BORRAR_DATOS_INGRESO_AUX_INVENTARIO',
                 'INGRESO_DATOS_DATOS_AUX_INVENTARIO',
+                'SET_ACTIVIDAD_DESCUENTO',
+                'INSERTAR_NUEVO_PRODUCTO',
+                'ACTULIZAR_PRODUCTO',
+                'BUSCAR_TODOS_LOS_PRODUCTOS',
+                'BUSCAR_TODOS_LOS_PRODUCTOS_POR_NOMBRE',
+                'BUSCAR_PRODUCTO',
+                'BUSCAR_EXISTENCIA_PRODUCTO',
+                'BUSCAR_PRODUCTO_COD_BARRAS',
+                'devolver_producto_venta',
             ];
 
             foreach ($expectedActions as $action) {
@@ -72,6 +81,15 @@ class InventarioParametersTest
                 'STOCK_MOVE_DEVOLUCION',
                 'BORRAR_DATOS_INGRESO_AUX_INVENTARIO',
                 'INGRESO_DATOS_DATOS_AUX_INVENTARIO',
+                'SET_ACTIVIDAD_DESCUENTO',
+                'INSERTAR_NUEVO_PRODUCTO',
+                'ACTULIZAR_PRODUCTO',
+                'BUSCAR_TODOS_LOS_PRODUCTOS',
+                'BUSCAR_TODOS_LOS_PRODUCTOS_POR_NOMBRE',
+                'BUSCAR_PRODUCTO',
+                'BUSCAR_EXISTENCIA_PRODUCTO',
+                'BUSCAR_PRODUCTO_COD_BARRAS',
+                'devolver_producto_venta',
             ];
 
             foreach ($expectedActions as $action) {
@@ -99,7 +117,16 @@ class InventarioParametersTest
                 'recordStockMove',
                 'recordStockMoveDevolución',
                 'cancelPrechart',
-                'savePrechart'
+                'savePrechart',
+                'createDiscountActivity',
+                'createProduct',
+                'updateProduct',
+                'getAllProducts',
+                'getProductsByName',
+                'getProductById',
+                'getProductExistenceByDocument',
+                'getProductByIdOrBarcode',
+                'returnProductSale',
             ];
 
             foreach ($methods as $method) {
@@ -118,39 +145,30 @@ class InventarioParametersTest
 
     private function testStockMoveAcceptsLegacyParameters(): void
     {
-        echo "TEST 4: recordStockMove accepts legacy parameters... ";
+        echo "TEST 4: inventario actions accept real legacy parameters... ";
 
         try {
             $body = [
-                'action' => 'STOCK_MOVE',
-                '_usuario' => 'admin',
-                'id_documento' => 12345,
-                'id_producto' => 567,
-                'cantidad' => 10,
-                'tipo_movimiento' => 'salida'
+                'action' => 'INGRESO_DATOS_DATOS_AUX_INVENTARIO',
+                '_ingreso' => [
+                    'idProducto' => 567,
+                    'cantidad' => 10,
+                    'bodega' => ['id' => 2, 'nombre' => 'Principal'],
+                ],
+                '_bodega_ingreso' => 2,
             ];
 
             $request = new \App\Core\Http\Request('POST', [], $body, [], []);
 
-            $documentId = $request->input('id_documento', 0);
-            $productId = $request->input('id_producto', 0);
-            $quantity = $request->input('cantidad', 0);
-            $type = $request->input('tipo_movimiento', 'salida');
+            $ingreso = $request->input('ingreso', []);
+            $warehouseId = $request->input('bodega_ingreso', 0);
 
-            if ($documentId !== 12345) {
-                throw new \Exception("Failed to extract id_documento");
+            if (!is_array($ingreso) || ($ingreso['idProducto'] ?? 0) !== 567) {
+                throw new \Exception("Failed to extract _ingreso");
             }
 
-            if ($productId !== 567) {
-                throw new \Exception("Failed to extract id_producto");
-            }
-
-            if ($quantity !== 10) {
-                throw new \Exception("Failed to extract cantidad");
-            }
-
-            if ($type !== 'salida') {
-                throw new \Exception("Failed to extract tipo_movimiento");
+            if ($warehouseId !== 2) {
+                throw new \Exception("Failed to extract _bodega_ingreso");
             }
 
             echo "✓ PASSED\n";
