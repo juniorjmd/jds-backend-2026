@@ -128,7 +128,7 @@ class VehiculosService
             $this->repository->commitTransaction();
 
             return [
-                'error' => 'ok',
+                'message' => 'Servicio vehicular ingresado correctamente',
                 'idDocumento' => $documentId,
             ];
         } catch (\Throwable $e) {

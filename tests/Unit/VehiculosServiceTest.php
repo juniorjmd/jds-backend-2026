@@ -38,7 +38,7 @@ class VehiculosServiceTest
 
     private function testCreateDocumentForVehicleServiceUsesExistingDocument(): void
     {
-        echo "TEST 1: createDocumentForVehicleService returns legacy success payload... ";
+        echo "TEST 1: createDocumentForVehicleService returns standard success payload... ";
 
         try {
             $repository = new class extends VehiculosRepository {
@@ -111,8 +111,8 @@ class VehiculosServiceTest
                 'idDocumento' => 999,
             ]);
 
-            if (($result['error'] ?? '') !== 'ok' || ($result['idDocumento'] ?? 0) !== 999) {
-                throw new \Exception('Unexpected legacy success payload');
+            if (($result['idDocumento'] ?? 0) !== 999 || ($result['message'] ?? '') !== 'Servicio vehicular ingresado correctamente') {
+                throw new \Exception('Unexpected standard success payload');
             }
 
             echo "✓ PASSED\n";

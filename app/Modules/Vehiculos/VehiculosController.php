@@ -24,15 +24,13 @@ class VehiculosController
                 $payload = [];
             }
 
-            (new Response())
-                ->status(200)
-                ->json($this->service->createDocumentForVehicleService($payload))
-                ->send();
+            Response::ok($this->service->createDocumentForVehicleService($payload), 200);
         } catch (\Throwable $e) {
-            (new Response())
-                ->status(500)
-                ->json(['error' => $e->getMessage()])
-                ->send();
+            Response::fail(
+                'CREAR_DOCUMENTO_POR_SERVICIO_VEHICULO_ERROR',
+                $e->getMessage(),
+                500
+            );
         }
     }
 }

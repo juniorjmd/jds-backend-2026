@@ -258,8 +258,10 @@ Eso incluye acciones de:
 
 #### Documentos
 
-- estado: principal brecha actual
-- observacion clave: `config/documentos-actions.php` todavia expone acciones estilo API moderna y no el mapa legacy principal del modulo
+- estado: parcialmente cerrado en backend nuevo, ya con acciones legacy minimas del flujo actual
+- observacion clave:
+  - ya no es un stub puro
+  - quedaron implementadas y validadas con datos reales las acciones que hoy bloqueaban `ventas` y `compras`
 - acciones legacy visibles y relevantes:
   - `GET_DOCUMENTOS_USUARIO_ACTUAL`
   - `GET_DOCUMENTOS_USUARIO_ACTUAL_CAJA_ACTIVA`
@@ -280,8 +282,31 @@ Eso incluye acciones de:
   - `GENERAR_DOCUMENTOS_NOTA_DEBITO`
 - prioridad: alta
 - validacion de cobertura legacy:
-  - claramente parcial
-  - el mapa actual `config/documentos-actions.php` no corresponde al set principal de acciones legacy usado por frontend
+  - parcial
+  - ya cubiertos y probados localmente:
+    - `GET_DOCUMENTOS_USUARIO_ACTUAL`
+    - `GET_DOCUMENTOS_USUARIO_ACTUAL_CAJA_ACTIVA`
+    - `CREAR_DOCUMENTO_POR_USUARIO`
+    - `CREAR_DOCUMENTO_COMPRA_POR_USUARIO`
+    - `CAMBIAR_DOCUMENTO_ACTIVO_POR_USUARIO`
+    - `CAMBIAR_DOCUMENTO_COMPRA_ACTIVO_POR_USUARIO`
+  - validacion real hecha:
+    - login real contra `http://localhost/jds_back_2026/api/login/`
+    - `GET_DOCUMENTOS_USUARIO_ACTUAL_CAJA_ACTIVA` responde `ok: true`
+    - `CREAR_DOCUMENTO_POR_USUARIO` responde `ok: true`
+    - `CAMBIAR_DOCUMENTO_ACTIVO_POR_USUARIO` responde `ok: true`
+  - pendiente para darlo por cerrado:
+    - `CREAR_DOCUMENTO_GASTO_POR_USUARIO`
+    - `CERRAR_DOCUMENTO_FACTURA`
+    - `CERRAR_DOCUMENTO_REMISION`
+    - `CAMBIAR_DOCUMENTO_A_ENVIO`
+    - `CANCELAR_DOCUMENTO_POR_USUARIO`
+    - `CREAR_DOCUMENTO_COTIZACION_POR_USUARIO`
+    - `CAMBIAR_DOCUMENTO_POR_CAJA`
+    - `ASIGNAR_ABONO_DOCUMENTOS_CREDITO`
+    - `ASIGNAR_ABONO_DOCUMENTOS_CREDITO_POR_PAGAR`
+    - `GENERAR_DOCUMENTOS_DEVOLUCION`
+    - `GENERAR_DOCUMENTOS_NOTA_DEBITO`
 
 ## Clasificacion operativa sugerida
 

@@ -1,69 +1,57 @@
 # Feature-05: Documentos Module Legacy Routing - IMPLEMENTATION
 
-## 🏗️ Arquitectura Implementada
+## Arquitectura implementada
 
-### Estructura de Archivos
-```
+### Estructura de archivos
+
+```text
 app/Modules/Documentos/
-├── DocumentosController.php      # Controlador de acciones legacy documentales
-├── Services/
-│   └── DocumentosService.php     # Lógica de negocio del módulo Documentos
-└── Repositories/                 # Carpeta reservada para futura integración con BD
+├── DocumentosController.php
+├── Repositories/
+│   └── DocumentosRepository.php
+└── Services/
+    └── DocumentosService.php
 
 config/
-└── documentos-actions.php        # Mapeo de acciones legacy del módulo Documentos
+└── documentos-actions.php
 ```
 
-### Componentes Principales
+### Cambios reales del cierre actual
 
-#### DocumentosController
-- **Constructor**: Recibe Request y DocumentosService
-- **Métodos**:
-  - `listDocuments()`
-  - `uploadDocument()`
-  - `downloadDocument()`
-  - `deleteDocument()`
-- **Respuestas**: Usa `Response::ok()` y `Response::fail()` para consistencia
+- `DocumentosRepository` ya llama los procedimientos legacy reales:
+  - `getUserGenericDocuments`
+  - `crearNuevoDocumento`
+  - `crearNuevoDocumentoCompra`
+  - `cambiarDocumentoActual`
+  - `cambiarDocumentoCompraActual`
+- `DocumentosService` ya no devuelve payload legacy crudo.
+- Las respuestas nuevas del modulo salen estandarizadas como `ok/data/error`.
+- Para colecciones de documentos el backend devuelve:
+  - `data.records`
+  - `data.count`
+- Para creacion/cambio de documento devuelve:
+  - `data.message`
+  - `data.documentId`
+  - y en creacion tambien `data.records` y `data.count`
 
-#### DocumentosService
-- **Constructor**: Recibe Request y AuthContext
-- **Autenticación**: Usa `AuthContext::resolve()` para validar al usuario
-- **Validaciones**: Verifica acceso al documento
-- **Lógica**: Implementa operaciones simuladas con TODO de BD
+### Acciones legacy cerradas en este frente
 
-#### Configuración
-- `documentos-actions.php`: Mapea acciones legacy a `[DocumentosController::class, 'method']`
-- `Routes.php`: Carga automáticamente `documentos-actions.php`
-- `Router.php`: Añade fábrica `createDocumentosController()`
+- `GET_DOCUMENTOS_USUARIO_ACTUAL`
+- `GET_DOCUMENTOS_USUARIO_ACTUAL_CAJA_ACTIVA`
+- `CREAR_DOCUMENTO_POR_USUARIO`
+- `CREAR_DOCUMENTO_COMPRA_POR_USUARIO`
+- `CAMBIAR_DOCUMENTO_ACTIVO_POR_USUARIO`
+- `CAMBIAR_DOCUMENTO_COMPRA_ACTIVO_POR_USUARIO`
 
-## 🔄 Flujo de Ejecución
+### Validacion real local
 
-### Caso: Listar documentos
-1. Frontend envía `POST /` con `{"action":"LISTAR_DOCUMENTOS","_usuario_id":123}`
-2. Router detecta acción legacy y busca en `documentos-actions.php`
-3. Router instancia `DocumentosController`
-4. `DocumentosController::listDocuments()` ejecuta lógica
-5. `DocumentosService` valida autenticación y acceso
-6. Responde JSON compatible con frontend legacy
+- login real contra `http://localhost/jds_back_2026/api/login/`
+- `POST /api/documentos/` con `GET_DOCUMENTOS_USUARIO_ACTUAL_CAJA_ACTIVA` responde `ok: true`
+- `POST /api/documentos/` con `CREAR_DOCUMENTO_POR_USUARIO` responde `ok: true`
+- `POST /api/documentos/` con `CAMBIAR_DOCUMENTO_ACTIVO_POR_USUARIO` responde `ok: true`
 
-## 🔧 Cambios Técnicos
+## Tests
 
-### Router.php
-- Añade import de `DocumentosController` y `DocumentosService`
-- Añade `DOCUMENTOSController::class` en `instantiateAndCall()`
-- Añade `createDocumentosController()`
-
-### Routes.php
-- Añade carga de `config/documentos-actions.php`
-- Usa `require_once` para cumplir preferencia de carga segura
-
-### Configuración Legacy
-- `config/documentos-actions.php` mapea las 4 acciones
-
-## 🧪 Tests Añadidos
-- `DocumentosParametersTest`: valida parámetros legacy
-- `DocumentosServiceTest`: prueba lógica de negocio y validaciones
-
-## 🚀 Compatibilidad
-- Mantiene el mismo formato legacy de parámetros y respuestas
-- Añade compatibilidad para el módulo Documentos sin romper el backend moderno
+- `DocumentosParametersTest`
+- `DocumentosServiceTest`
+- `php tests/run-tests.php` en verde

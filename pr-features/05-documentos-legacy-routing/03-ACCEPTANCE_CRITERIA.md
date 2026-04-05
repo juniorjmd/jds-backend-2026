@@ -1,62 +1,61 @@
 # Feature-05: Documentos Module Legacy Routing - ACCEPTANCE_CRITERIA
 
-## ✅ Criterios Funcionales
+## Criterios funcionales cerrados en este corte
 
-### CA-01: Listar Documentos
-**Dado** un usuario autenticado
-**Cuando** envía `{"action":"LISTAR_DOCUMENTOS","_usuario_id":123}`
-**Entonces** debe retornar un array de documentos autorizados para el usuario
+### CA-01: Consultar documentos del usuario actual
 
-#### Criterios
-- ✅ Retorna `success: true`
-- ✅ Retorna lista de documentos con campos: `documento_id`, `nombre`, `tipo`, `fecha_creacion`
-- ✅ Permite filtrar por `tipo` cuando se especifica
-- ✅ Retorna error si el usuario no está autenticado
+- `GET_DOCUMENTOS_USUARIO_ACTUAL` responde con envelope estandar:
+  - `ok`
+  - `data.records`
+  - `data.count`
+  - `error`
 
-### CA-02: Subir Documento
-**Dado** un usuario autenticado
-**Cuando** envía datos completos del documento
-**Entonces** debe retornar metadata del documento creado
+### CA-02: Consultar documentos del usuario por caja activa
 
-#### Criterios
-- ✅ Valida los campos requeridos
-- ✅ Retorna `ID` generado y nombre del archivo
-- ✅ Soporta carga de contenido Base64
-- ✅ Maneja errores de validación
+- `GET_DOCUMENTOS_USUARIO_ACTUAL_CAJA_ACTIVA` responde con envelope estandar
+- la llamada real local ya devolvio documentos del usuario autenticado
 
-### CA-03: Descargar Documento
-**Dado** un usuario autenticado
-**Cuando** envía `{"action":"DESCARGAR_DOCUMENTO","_documento_id":456}`
-**Entonces** debe retornar metadata del documento y URL de descarga simulada
+### CA-03: Crear documento de venta por usuario
 
-#### Criterios
-- ✅ Verifica acceso del usuario al documento
-- ✅ Retorna `success: true` con `download_url`
-- ✅ Retorna error si el documento no existe
+- `CREAR_DOCUMENTO_POR_USUARIO` responde con envelope estandar
+- incluye `data.message`
+- incluye `data.records` y `data.count`
+- validacion real local ejecutada contra backend Apache
 
-### CA-04: Eliminar Documento
-**Dado** un usuario autenticado
-**Cuando** envía `{"action":"BORRAR_DOCUMENTO","_documento_id":456}`
-**Entonces** debe marcar el documento como eliminado
+### CA-04: Crear documento de compra por usuario
 
-#### Criterios
-- ✅ Verifica que el documento exista
-- ✅ Retorna confirmación exitosa
-- ✅ Retorna error si el documento no pertenece al usuario
+- `CREAR_DOCUMENTO_COMPRA_POR_USUARIO` queda registrado en backend nuevo
+- requiere `_establecimiento` valido
 
-## ❌ Criterios de No-Regresión
+### CA-05: Cambiar documento activo
 
-- CA-NR-01: Las acciones legacy existentes en otros módulos deben seguir funcionando
-- CA-NR-02: El formato JSON de respuesta debe mantenerse consistente
-- CA-NR-03: No debe romper la lectura de `Routes::map()`
+- `CAMBIAR_DOCUMENTO_ACTIVO_POR_USUARIO` responde con:
+  - `data.message`
+  - `data.documentId`
+- validacion real local ejecutada
 
-## 🧪 Tests
-- TA-01: Escenario completo de listar documentos
-- TA-02: Escenario de error por documento no encontrado
-- TA-03: Escenario de error de autenticación
+### CA-06: Cambiar documento de compra activo
 
-## 📏 Condición de Completitud
-- [ ] Todos los criterios funcionales pasan
-- [ ] Tests unitarios pasan
-- [ ] Documentación creada
-- [ ] PR listo para revisión
+- `CAMBIAR_DOCUMENTO_COMPRA_ACTIVO_POR_USUARIO` responde con:
+  - `data.message`
+  - `data.documentId`
+
+## No regresion
+
+- `php tests/run-tests.php` pasa completo
+- el router sigue resolviendo acciones legacy por mapa
+- el frontend de ventas ya no depende de `numdata/data/error` para `documentos`
+
+## Pendientes para cierre total del modulo
+
+- `CREAR_DOCUMENTO_GASTO_POR_USUARIO`
+- `CERRAR_DOCUMENTO_FACTURA`
+- `CERRAR_DOCUMENTO_REMISION`
+- `CAMBIAR_DOCUMENTO_A_ENVIO`
+- `CANCELAR_DOCUMENTO_POR_USUARIO`
+- `CREAR_DOCUMENTO_COTIZACION_POR_USUARIO`
+- `CAMBIAR_DOCUMENTO_POR_CAJA`
+- `ASIGNAR_ABONO_DOCUMENTOS_CREDITO`
+- `ASIGNAR_ABONO_DOCUMENTOS_CREDITO_POR_PAGAR`
+- `GENERAR_DOCUMENTOS_DEVOLUCION`
+- `GENERAR_DOCUMENTOS_NOTA_DEBITO`

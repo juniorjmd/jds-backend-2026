@@ -27,6 +27,23 @@ class DocumentosParametersTest
         try {
             $actions = require __DIR__ . '/../../config/documentos-actions.php';
             foreach ([
+                'GET_DOCUMENTOS_USUARIO_ACTUAL',
+                'GET_DOCUMENTOS_USUARIO_ACTUAL_CAJA_ACTIVA',
+                'CREAR_DOCUMENTO_POR_USUARIO',
+                'CREAR_DOCUMENTO_COMPRA_POR_USUARIO',
+                'CAMBIAR_DOCUMENTO_ACTIVO_POR_USUARIO',
+                'CAMBIAR_DOCUMENTO_COMPRA_ACTIVO_POR_USUARIO',
+                'CREAR_DOCUMENTO_GASTO_POR_USUARIO',
+                'ASIGNAR_ABONO_DOCUMENTOS_CREDITO',
+                'ASIGNAR_ABONO_DOCUMENTOS_CREDITO_POR_PAGAR',
+                'GENERAR_DOCUMENTOS_DEVOLUCION',
+                'GENERAR_DOCUMENTOS_NOTA_DEBITO',
+                'CERRAR_DOCUMENTO_FACTURA',
+                'CERRAR_DOCUMENTO_REMISION',
+                'CAMBIAR_DOCUMENTO_A_ENVIO',
+                'CANCELAR_DOCUMENTO_POR_USUARIO',
+                'CREAR_DOCUMENTO_COTIZACION_POR_USUARIO',
+                'CAMBIAR_DOCUMENTO_POR_CAJA',
                 'LISTAR_DOCUMENTOS',
                 'SUBIR_DOCUMENTO',
                 'DESCARGAR_DOCUMENTO',
@@ -51,8 +68,14 @@ class DocumentosParametersTest
 
         try {
             $map = \App\Bootstrap\Routes::map();
-            if (!array_key_exists('LISTAR_DOCUMENTOS', $map)) {
-                throw new \Exception('Action LISTAR_DOCUMENTOS not found in Routes::map()');
+            foreach ([
+                'GET_DOCUMENTOS_USUARIO_ACTUAL_CAJA_ACTIVA',
+                'CERRAR_DOCUMENTO_FACTURA',
+                'CREAR_DOCUMENTO_GASTO_POR_USUARIO',
+            ] as $action) {
+                if (!array_key_exists($action, $map)) {
+                    throw new \Exception("Action {$action} not found in Routes::map()");
+                }
             }
 
             echo "✓ PASSED\n";
@@ -69,7 +92,25 @@ class DocumentosParametersTest
 
         try {
             $controller = \App\Modules\Documentos\DocumentosController::class;
-            foreach (['listDocuments', 'uploadDocument', 'downloadDocument', 'deleteDocument'] as $method) {
+            foreach ([
+                'getCurrentUserDocuments',
+                'getCurrentUserDocumentsByActiveBox',
+                'createCurrentUserDocument',
+                'createCurrentUserPurchaseDocument',
+                'changeCurrentUserDocument',
+                'changeCurrentUserPurchaseDocument',
+                'createExpenseDocument',
+                'createCreditAbonoDocument',
+                'createPayableCreditAbonoDocument',
+                'createDevolucionDocument',
+                'createNotaDebitoDocument',
+                'closeInvoiceDocument',
+                'closeRemisionDocument',
+                'sendDocumentToDelivery',
+                'cancelDocument',
+                'convertDocumentToQuotation',
+                'changeDocumentBox',
+            ] as $method) {
                 if (!method_exists($controller, $method)) {
                     throw new \Exception("Method $method not found");
                 }
@@ -117,8 +158,8 @@ class DocumentosParametersTest
         echo "TEST 5: Action is detected correctly... ";
 
         try {
-            $request = new \App\Core\Http\Request('POST', [], ['action' => 'LISTAR_DOCUMENTOS'], [], []);
-            if ($request->action() !== 'LISTAR_DOCUMENTOS') {
+            $request = new \App\Core\Http\Request('POST', [], ['action' => 'CERRAR_DOCUMENTO_FACTURA'], [], []);
+            if ($request->action() !== 'CERRAR_DOCUMENTO_FACTURA') {
                 throw new \Exception('action mismatch');
             }
 
